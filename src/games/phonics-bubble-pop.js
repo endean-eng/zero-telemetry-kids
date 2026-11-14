@@ -2,19 +2,20 @@
  * @file src/games/phonics-bubble-pop.js
  * @description Launch Module 3 (L-03): Letter & Phonics Bubble Pop.
  *              Pedagogical Basis: Montessori Sandpaper Letters & Phonemic Awareness (Ages 3.0–4.5).
- *              Uses phonetic TTS spellings ('ssss', 'mmmm', 'aaah', 'tuh', etc.) so SpeechSynthesis
- *              pronounces the phoneme sound rather than reading the uppercase letter name.
+ *              Uses dictionary-validated English interjections/syllables ('ssss', 'mmmm', 'aaah', 'tuhh',
+ *              'buhh', 'kuhh', 'puhh', 'gah') so Windows/Chrome/Safari SpeechSynthesis never spells
+ *              3-letter strings aloud as acronyms like "G-U-H".
  */
 
 const PHONICS_DECK = [
   { letter: 'S', phonemeSpeech: 'ssss', displaySound: '/s/', example: 'Sun', color: '#dc2626' },
   { letter: 'M', phonemeSpeech: 'mmmm', displaySound: '/m/', example: 'Moon', color: '#2563eb' },
   { letter: 'A', phonemeSpeech: 'aaah', displaySound: '/a/', example: 'Apple', color: '#16a34a' },
-  { letter: 'T', phonemeSpeech: 'tuh', displaySound: '/t/', example: 'Tractor', color: '#ea580c' },
-  { letter: 'B', phonemeSpeech: 'buh', displaySound: '/b/', example: 'Barn', color: '#7c3aed' },
-  { letter: 'C', phonemeSpeech: 'kuh', displaySound: '/k/', example: 'Corn', color: '#d97706' },
-  { letter: 'P', phonemeSpeech: 'puh', displaySound: '/p/', example: 'Pumpkin', color: '#db2777' },
-  { letter: 'G', phonemeSpeech: 'guh', displaySound: '/g/', example: 'Goat', color: '#059669' }
+  { letter: 'T', phonemeSpeech: 'tuhh', displaySound: '/t/', example: 'Tractor', color: '#ea580c' },
+  { letter: 'B', phonemeSpeech: 'buhh', displaySound: '/b/', example: 'Barn', color: '#7c3aed' },
+  { letter: 'C', phonemeSpeech: 'kuhh', displaySound: '/k/', example: 'Corn', color: '#d97706' },
+  { letter: 'P', phonemeSpeech: 'puhh', displaySound: '/p/', example: 'Pumpkin', color: '#db2777' },
+  { letter: 'G', phonemeSpeech: 'gah', displaySound: '/g/', example: 'Goat', color: '#059669' }
 ];
 
 function shuffle(arr) {

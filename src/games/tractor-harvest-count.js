@@ -1,7 +1,11 @@
 /**
  * @file src/games/tractor-harvest-count.js
- * @description Launch Module 2 (L-02): Tractor Harvest Counting (Marble-Bag 1–9, Fixed-Valley Pyramid Stack,
- *              Coupled Hitch Drawbar, Animated Exhaust Smoke, and Slower 3.4s Drive-Off Event).
+ * @description Launch Module 2 (L-02): Tractor Harvest Counting (Levels 1, 2, & 3).
+ *              - Level 1 (Single Crop): Marble-Bag 1–9 of a single crop type; exact count spawned in field.
+ *              - Level 2 (Mixed Load): Visual recipe of 2 different crop types (e.g., 3 Pumpkins + 2 Apples)
+ *                with graphical crop-icon counters on the wagon side and exact counts spawned in field.
+ *              - Level 3 (Extra Crops): Mixed 2-crop visual recipe on the wagon side, but the field spawns
+ *                extra distractor items of each crop so the child must stop loading a crop once its icon badge is full!
  */
 
 const NUMBER_WORDS = [
@@ -85,12 +89,16 @@ export default class TractorHarvestCountGame {
     this.PointerManager = null;
     this.cleanups = [];
     this.timers = [];
+
+    this.level = 1; // 1 = Single Crop | 2 = Mixed Load (2 Crops) | 3 = Mixed Load + Extra Field Crops
     this.marbleBag = [];
     this.lastNumber = null;
     this.roundCounter = 0;
-    this.currentCount = 0;
-    this.targetCount = 1;
-    this.currentCrop = CROPS[0];
+
+    // Recipe tracking: array of { crop, target, current }
+    this.orders = [];
+    this.totalLoaded = 0;
+    this.totalTarget = 1;
   }
 
   mount(containerEl, audioApi, speechApi, { PointerManager }) {
@@ -98,6 +106,7 @@ export default class TractorHarvestCountGame {
     this.audio = audioApi;
     this.speech = speechApi;
     this.PointerManager = PointerManager;
+    this.level = 1;
     this.marbleBag = [];
     this.lastNumber = null;
     this.roundCounter = 0;
@@ -123,33 +132,143 @@ export default class TractorHarvestCountGame {
     return id;
   }
 
+  _buildRoundOrdersAndField() {
+    if (this.level === 1) {
+      const target = this._drawNextNumberFromMarbleBag();
+      const crop = CROPS[this.roundCounter % CROPS.length];
+      this.orders = [{ crop, target, current: 0 }];
+      this.totalTarget = target;
+
+      const fieldItems = Array.from({ length: target }).map(() => crop);
+      return { fieldItems };
+    }
+
+    // Level 2 & Level 3: Pick 2 distinct crops with total sum between 2 and 9
+    const pickedCrops = shuffle(CROPS).slice(0, 2);
+    const countA = Math.floor(Math.random() * 4) + 1; // 1..4
+    const maxB = Math.min(5, 9 - countA);
+    const countB = Math.floor(Math.random() * maxB) + 1; // 1..5 (so countA + countB <= 9)
+
+    this.orders = [
+      { crop: pickedCrops[0], target: countA, current: 0 },
+      { crop: pickedCrops[1], target: countB, current: 0 }
+    ];
+    this.totalTarget = countA + countB;
+
+    const fieldItems = [];
+    const extraA = this.level === 3 ? Math.floor(Math.random() * 2) + 1 : 0;
+    const extraB = this.level === 3 ? Math.floor(Math.random() * 2) + 1 : 0;
+
+    for (let i = 0; i < countA + extraA; i++) {
+      fieldItems.push(pickedCrops[0]);
+    }
+    for (let i = 0; i < countB + extraB; i++) {
+      fieldItems.push(pickedCrops[1]);
+    }
+
+    return { fieldItems: shuffle(fieldItems) };
+  }
+
+  _getPromptText() {
+    if (this.orders.length === 1) {
+      const o = this.orders[0];
+      const label = o.target === 1 ? o.crop.singular : o.crop.plural;
+      return 'Load ' + NUMBER_WORDS[o.target] + ' ' + label + ' into the wagon!';
+    }
+    const o1 = this.orders[0];
+    const o2 = this.orders[1];
+    const label1 = o1.target === 1 ? o1.crop.singular : o1.crop.plural;
+    const label2 = o2.target === 1 ? o2.crop.singular : o2.crop.plural;
+    return (
+      'Load ' +
+      NUMBER_WORDS[o1.target] +
+      ' ' +
+      label1 +
+      ' and ' +
+      NUMBER_WORDS[o2.target] +
+      ' ' +
+      label2 +
+      '!'
+    );
+  }
+
+  _renderWagonBadgeHtml() {
+    // Renders intuitive visual crop icon + count for each required crop right on the side of the wagon!
+    return this.orders
+      .map((order, idx) => {
+        const isDone = order.current >= order.target;
+        return (
+          '<div class="thc-order-pill' +
+          (isDone ? ' done' : '') +
+          '" id="thc-order-pill-' +
+          idx +
+          '">' +
+          '<span class="thc-order-icon">' +
+          order.crop.svg +
+          '</span>' +
+          '<span class="thc-order-text" id="thc-order-text-' +
+          idx +
+          '">' +
+          order.current +
+          '/' +
+          order.target +
+          '</span>' +
+          '</div>'
+        );
+      })
+      .join('');
+  }
+
   startRound() {
     this.cleanups.forEach((fn) => fn());
     this.cleanups = [];
-    this.currentCount = 0;
-    this.targetCount = this._drawNextNumberFromMarbleBag();
-    this.currentCrop = CROPS[this.roundCounter % CROPS.length];
+    this.totalLoaded = 0;
+
+    const { fieldItems } = this._buildRoundOrdersAndField();
     this.roundCounter += 1;
 
-    const cropLabel =
-      this.targetCount === 1 ? this.currentCrop.singular : this.currentCrop.plural;
-    const promptText =
-      'Load ' + NUMBER_WORDS[this.targetCount] + ' ' + cropLabel + ' into the wagon!';
+    const promptText = this._getPromptText();
 
-    const cropsHtml = Array.from({ length: this.targetCount })
+    // Render visual prompt with inline mini crop icons so non-readers understand immediately
+    const visualPromptHtml = this.orders
+      .map((o) => {
+        return (
+          '<span class="thc-inline-recipe">' +
+          '<span class="thc-inline-icon">' +
+          o.crop.svg +
+          '</span>' +
+          '<strong>' +
+          o.target +
+          '</strong>' +
+          '</span>'
+        );
+      })
+      .join('<span style="margin:0 4px; font-weight:900;">+</span>');
+
+    const levelLabels = {
+      1: '⭐ Level 1: Single Crop',
+      2: '🌟 Level 2: Mixed Load',
+      3: '🏆 Level 3: Extra Crops'
+    };
+    const levelColors = {
+      1: '#fef08a',
+      2: '#ddd6fe',
+      3: '#fed7aa'
+    };
+
+    const cropsHtml = fieldItems
       .map(
-        (_, i) =>
+        (crop, i) =>
           '<div class="thc-crop-item" data-idx="' +
           i +
+          '" data-crop-id="' +
+          crop.id +
           '">' +
-          this.currentCrop.svg +
+          crop.svg +
           '</div>'
       )
       .join('');
 
-    // Pre-build 5 fixed bottom slots (0..4) and 4 fixed valley top slots (5..8)
-    // Because all 5 bottom slots and 4 top slots have fixed 44px widths,
-    // the 4 top slots ALWAYS sit mathematically centered over the 4 valleys between the 5 bottom slots!
     const bottomSlotsHtml = [0, 1, 2, 3, 4]
       .map((slotIdx) => '<div class="thc-slot" id="thc-slot-' + slotIdx + '"></div>')
       .join('');
@@ -164,15 +283,31 @@ export default class TractorHarvestCountGame {
       '  width: 100%; height: 100%; display: flex; flex-direction: column;' +
       '  justify-content: space-between; align-items: center;' +
       '  background: linear-gradient(180deg, #e0f2fe 0%, #bae6fd 52%, #fef08a 52%, #fde047 100%);' +
-      '  padding: 12px 110px 18px 110px; overflow: hidden; position: relative;' +
+      '  padding: 10px 110px 16px 110px; overflow: hidden; position: relative;' +
+      '}' +
+      '.thc-top-bar {' +
+      '  display: flex; align-items: center; justify-content: center; gap: 14px; flex-wrap: wrap; z-index: 20;' +
       '}' +
       '.thc-prompt-btn {' +
-      '  min-width: 96px; min-height: 84px; padding: 8px 24px; border-radius: 999px;' +
+      '  min-width: 96px; min-height: 82px; padding: 8px 22px; border-radius: 999px;' +
       '  background: #ffffff; border: 4px solid #0f172a; box-shadow: 0 5px 0 #0f172a;' +
-      '  font-size: 1.2rem; font-weight: 800; color: #0f172a; display: flex; align-items: center; gap: 12px; cursor: pointer;' +
+      '  font-size: 1.15rem; font-weight: 800; color: #0f172a; display: flex; align-items: center; gap: 12px; cursor: pointer;' +
+      '}' +
+      '.thc-inline-recipe {' +
+      '  display: inline-flex; align-items: center; gap: 4px; background: #f1f5f9;' +
+      '  border: 2px solid #0f172a; border-radius: 999px; padding: 2px 10px; font-size: 1.3rem;' +
+      '}' +
+      '.thc-inline-icon { width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center; }' +
+      '.thc-inline-icon svg { width: 30px; height: 30px; }' +
+      '.thc-level-btn {' +
+      '  min-height: 82px; padding: 8px 18px; border-radius: 999px;' +
+      '  background: ' +
+      levelColors[this.level] +
+      '; border: 4px solid #0f172a; box-shadow: 0 5px 0 #0f172a;' +
+      '  font-size: 1.05rem; font-weight: 800; color: #0f172a; cursor: pointer;' +
       '}' +
       '.thc-rig-row {' +
-      '  display: flex; align-items: flex-end; justify-content: center; gap: 0px; margin-top: 24px;' +
+      '  display: flex; align-items: flex-end; justify-content: center; gap: 0px; margin-top: 14px;' +
       '  transition: transform 3.4s cubic-bezier(0.35, 0, 0.25, 1);' +
       '}' +
       '.thc-rig-row.drive-away { transform: translateX(115vw); }' +
@@ -183,7 +318,6 @@ export default class TractorHarvestCountGame {
       '  75% { transform: translateY(-4px); }' +
       '}' +
       '.thc-rig-row.chug-bounce { animation: thcChug 0.6s ease-in-out 2; }' +
-      /* Exhaust Smoke Animations */
       '@keyframes thcSmokePuff {' +
       '  0% { transform: translate(0px, 0px) scale(0.4); opacity: 0.85; }' +
       '  60% { opacity: 0.6; }' +
@@ -209,7 +343,6 @@ export default class TractorHarvestCountGame {
       '.thc-tractor-svg {' +
       '  margin-left: -28px; position: relative; z-index: 12; overflow: visible;' +
       '}' +
-      /* Fixed-Slot Hexagonal Pyramid Grid: 4 Valley Slots centered over 5 Base Slots */
       '.thc-wagon-loaded {' +
       '  position: absolute; bottom: 108px; left: 16px; width: 280px;' +
       '  display: flex; flex-direction: column-reverse; align-items: center; justify-content: center;' +
@@ -218,23 +351,29 @@ export default class TractorHarvestCountGame {
       '.thc-wagon-row {' +
       '  display: flex; align-items: center; justify-content: center; gap: 4px; height: 36px;' +
       '}' +
-      '.thc-wagon-row.row-top {' +
-      '  margin-bottom: -10px; z-index: 4;' +
-      '}' +
+      '.thc-wagon-row.row-top { margin-bottom: -10px; z-index: 4; }' +
       '.thc-wagon-row.row-bottom { z-index: 6; }' +
-      '.thc-slot {' +
-      '  width: 44px; height: 44px; display: flex; align-items: center; justify-content: center;' +
-      '}' +
+      '.thc-slot { width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; }' +
       '.thc-slot svg { width: 42px; height: 42px; }' +
       '.thc-wagon-svg { position: relative; z-index: 10; }' +
+      /* Visual Recipe Badge on the side of the wagon */
       '.thc-badge {' +
       '  position: absolute; bottom: 48px; left: 46%; transform: translateX(-50%);' +
       '  background: #ffffff; border: 4px solid #0f172a;' +
-      '  border-radius: 16px; padding: 2px 18px; font-size: 1.9rem; font-weight: 900; color: #0f172a; pointer-events: none; z-index: 15;' +
+      '  border-radius: 16px; padding: 3px 10px; display: flex; align-items: center; gap: 10px;' +
+      '  pointer-events: none; z-index: 15; white-space: nowrap;' +
       '}' +
+      '.thc-order-pill {' +
+      '  display: flex; align-items: center; gap: 4px; padding: 2px 6px; border-radius: 10px;' +
+      '  transition: background-color 0.2s ease;' +
+      '}' +
+      '.thc-order-pill.done { background: #dcfce7; }' +
+      '.thc-order-icon { width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; }' +
+      '.thc-order-icon svg { width: 34px; height: 34px; }' +
+      '.thc-order-text { font-size: 1.45rem; font-weight: 900; color: #0f172a; }' +
       '.thc-field-grid {' +
-      '  display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 14px;' +
-      '  max-width: 880px; min-height: 186px; padding: 10px 24px; background: rgba(255, 255, 255, 0.82);' +
+      '  display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 12px;' +
+      '  max-width: 920px; min-height: 176px; padding: 10px 22px; background: rgba(255, 255, 255, 0.85);' +
       '  border: 4px solid #0f172a; border-radius: 26px;' +
       '}' +
       '.thc-crop-item {' +
@@ -245,12 +384,16 @@ export default class TractorHarvestCountGame {
       '.thc-crop-item.loaded { visibility: hidden; pointer-events: none; }' +
       '</style>' +
       '<div class="thc-stage">' +
+      '<div class="thc-top-bar">' +
       '<button type="button" class="thc-prompt-btn" id="thc-repeat-btn">' +
-      '<span style="font-size:1.7rem;">🔊</span>' +
-      '<span>' +
-      promptText +
-      '</span>' +
+      '<span style="font-size:1.6rem;">🔊</span>' +
+      '<span>Load:</span>' +
+      visualPromptHtml +
       '</button>' +
+      '<button type="button" class="thc-level-btn" id="thc-level-btn">' +
+      levelLabels[this.level] +
+      '</button>' +
+      '</div>' +
       '<div class="thc-rig-row" id="thc-rig">' +
       '<div class="thc-wagon-zone" id="thc-wagon-drop">' +
       '<div class="thc-wagon-loaded">' +
@@ -271,13 +414,10 @@ export default class TractorHarvestCountGame {
       '<circle cx="228" cy="108" r="10" fill="#f59e0b"/>' +
       '</svg>' +
       '<div class="thc-badge" id="thc-counter-badge">' +
-      this.currentCount +
-      ' / ' +
-      this.targetCount +
+      this._renderWagonBadgeHtml() +
       '</div>' +
       '</div>' +
       '<svg class="thc-tractor-svg" viewBox="0 -30 160 170" width="154" height="156">' +
-      /* Animated Exhaust Smoke Puffs above the stack */
       '<circle class="thc-smoke thc-smoke-1" cx="117" cy="18" r="9" fill="#cbd5e1" stroke="#64748b" stroke-width="2"/>' +
       '<circle class="thc-smoke thc-smoke-2" cx="117" cy="18" r="11" fill="#e2e8f0" stroke="#64748b" stroke-width="2"/>' +
       '<circle class="thc-smoke thc-smoke-3" cx="117" cy="18" r="8" fill="#f1f5f9" stroke="#64748b" stroke-width="2"/>' +
@@ -297,9 +437,17 @@ export default class TractorHarvestCountGame {
       '</div>';
 
     const repeatBtn = this.container.querySelector('#thc-repeat-btn');
+    const levelBtn = this.container.querySelector('#thc-level-btn');
+
     repeatBtn.addEventListener('click', () => {
       this.audio.playNote(523.25, 0.12);
       this.speech.speak(promptText);
+    });
+
+    levelBtn.addEventListener('click', () => {
+      this.level = (this.level % 3) + 1;
+      this.audio.playNote(659.25, 0.15);
+      this.startRound();
     });
 
     this._schedule(() => this.speech.speak(promptText), 200);
@@ -308,13 +456,12 @@ export default class TractorHarvestCountGame {
     const badgeEl = this.container.querySelector('#thc-counter-badge');
     const rigEl = this.container.querySelector('#thc-rig');
 
-    // Fill order inside the 5-bottom / 4-top pyramid so small counts also stay centered in the cart:
-    // Bottom 5 slots (0..4): fill center-out [2, 1, 3, 0, 4] or left-to-right [0, 1, 2, 3, 4]
-    // Top 4 valley slots (5..8): fill left-to-right [5, 6, 7, 8] directly above the gaps between 0-1, 1-2, 2-3, 3-4!
     const SLOT_FILL_ORDER = [0, 1, 2, 3, 4, 5, 6, 7, 8];
 
     const cropEls = this.container.querySelectorAll('.thc-crop-item');
     cropEls.forEach((cropEl) => {
+      const cropId = cropEl.getAttribute('data-crop-id');
+
       const cleanup = this.PointerManager.attachDrag(cropEl, {
         onStart: () => {
           cropEl.classList.add('dragging');
@@ -325,32 +472,60 @@ export default class TractorHarvestCountGame {
         },
         onEnd: (clientX, clientY) => {
           cropEl.classList.remove('dragging');
+          const matchingOrder = this.orders.find((o) => o.crop.id === cropId);
+
           if (
             this.PointerManager.isWithinSnapRadius(clientX, clientY, wagonDropEl, 28) &&
-            this.currentCount < this.targetCount
+            matchingOrder &&
+            matchingOrder.current < matchingOrder.target
           ) {
             cropEl.classList.add('loaded');
-            const targetSlotIdx = SLOT_FILL_ORDER[this.currentCount];
-            this.currentCount += 1;
+            const targetSlotIdx = SLOT_FILL_ORDER[this.totalLoaded];
+            this.totalLoaded += 1;
+            matchingOrder.current += 1;
 
             const slotEl = this.container.querySelector('#thc-slot-' + targetSlotIdx);
             if (slotEl) {
-              slotEl.innerHTML = this.currentCrop.svg;
+              slotEl.innerHTML = matchingOrder.crop.svg;
             }
 
-            badgeEl.textContent = this.currentCount + ' / ' + this.targetCount;
+            badgeEl.innerHTML = this._renderWagonBadgeHtml();
 
             const noteHz =
-              PENTATONIC_SCALE[Math.min(this.currentCount, PENTATONIC_SCALE.length - 1)];
+              PENTATONIC_SCALE[Math.min(this.totalLoaded, PENTATONIC_SCALE.length - 1)];
             this.audio.playNote(noteHz, 0.22);
-            this.speech.speak(NUMBER_WORDS[this.currentCount]);
 
-            if (this.currentCount >= this.targetCount) {
-              this._completeRound(rigEl, cropLabel);
+            const spokenItemName =
+              matchingOrder.current === 1
+                ? matchingOrder.crop.singular
+                : matchingOrder.crop.plural;
+            this.speech.speak(
+              NUMBER_WORDS[matchingOrder.current] + ' ' + spokenItemName
+            );
+
+            if (this.totalLoaded >= this.totalTarget) {
+              this._completeRound(rigEl);
             }
           } else {
+            // Gentle bounce back: if in Level 3 and that crop's quota is already full, give a helpful hint!
             cropEl.style.transform = 'translate(0px, 0px)';
             this.audio.playGentleThud();
+            if (
+              this.PointerManager.isWithinSnapRadius(clientX, clientY, wagonDropEl, 28) &&
+              matchingOrder &&
+              matchingOrder.current >= matchingOrder.target
+            ) {
+              const remainingOrder = this.orders.find((o) => o.current < o.target);
+              if (remainingOrder) {
+                this.speech.speak(
+                  'All done with ' +
+                    matchingOrder.crop.plural +
+                    '! Look for ' +
+                    remainingOrder.crop.plural +
+                    '!'
+                );
+              }
+            }
           }
         }
       });
@@ -359,8 +534,7 @@ export default class TractorHarvestCountGame {
     });
   }
 
-  _completeRound(rigEl, cropLabel) {
-    // 10% probability surprise event: tractor puffs smoke, honks, and drives slowly off-screen (3.4s)!
+  _completeRound(rigEl) {
     const isDriveOffEvent = Math.random() < 0.10;
 
     this._schedule(() => {
@@ -368,17 +542,10 @@ export default class TractorHarvestCountGame {
       if (isDriveOffEvent) {
         setTimeout(() => this.audio.playNote(349.23, 0.24), 250);
         setTimeout(() => this.audio.playNote(440.0, 0.38), 520);
-        this.speech.speak(
-          NUMBER_WORDS[this.targetCount] +
-            ' ' +
-            cropLabel +
-            '! Beep beep! Off to the silo goes the tractor!'
-        );
+        this.speech.speak('Wagon full! Beep beep! Off to the silo goes the tractor!');
         if (rigEl) rigEl.classList.add('drive-away');
       } else {
-        this.speech.speak(
-          NUMBER_WORDS[this.targetCount] + ' ' + cropLabel + '! Great counting!'
-        );
+        this.speech.speak('Wagon full! Great counting!');
         if (rigEl) rigEl.classList.add('chug-bounce');
       }
     }, 650);

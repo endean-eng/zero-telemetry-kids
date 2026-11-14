@@ -30,13 +30,8 @@ Use these canonical color tokens and inline SVG templates across all `zero-telem
 </svg>
 
 ### 2.2 Green Row-Crop Tractor with Animated Exhaust Smoke (`viewBox="0 -30 160 170"`)
-<!-- CSS keyframes for exhaust puffs:
-@keyframes smokePuff {
-  0% { transform: translate(0px, 0px) scale(0.4); opacity: 0.85; }
-  60% { opacity: 0.6; }
-  100% { transform: translate(-28px, -42px) scale(1.65); opacity: 0; }
-}
--->
+<!-- Note: Cab is ALWAYS on the left over the large rear drive wheel (cx="46", r="32");
+     hood and exhaust stack are on the right over the smaller front steering wheel (cx="112", r="22"). -->
 <svg viewBox="0 -30 160 170" width="154" height="156" style="overflow:visible;">
   <circle class="smoke-puff-1" cx="117" cy="18" r="9" fill="#cbd5e1" stroke="#64748b" stroke-width="2" opacity="0"/>
   <circle class="smoke-puff-2" cx="117" cy="18" r="11" fill="#e2e8f0" stroke="#64748b" stroke-width="2" opacity="0"/>
@@ -51,8 +46,19 @@ Use these canonical color tokens and inline SVG templates across all `zero-telem
   <circle cx="112" cy="106" r="9" fill="#f59e0b" stroke="#0f172a" stroke-width="3"/>
 </svg>
 
-### 2.3 Coupled Grain Wagon with Hitch Drawbar & Pin (`viewBox="0 0 340 140"`)
-<!-- Pair with Tractor using margin-left: -28px on the tractor SVG so the clevis pin (cx="332") locks onto the rear axle -->
+### 2.3 Compact Launcher Tractor Icon (`viewBox="0 0 96 96"`)
+<svg viewBox="0 0 96 96" width="88" height="88">
+  <rect x="18" y="16" width="32" height="28" rx="5" fill="#16a34a" stroke="#0f172a" stroke-width="4"/>
+  <rect x="24" y="21" width="20" height="16" rx="3" fill="#bae6fd" stroke="#0f172a" stroke-width="2.5"/>
+  <rect x="66" y="20" width="6" height="18" rx="2" fill="#334155" stroke="#0f172a" stroke-width="2.5"/>
+  <rect x="14" y="36" width="66" height="26" rx="6" fill="#16a34a" stroke="#0f172a" stroke-width="4"/>
+  <circle cx="30" cy="64" r="18" fill="#1e293b" stroke="#0f172a" stroke-width="4"/>
+  <circle cx="30" cy="64" r="8" fill="#f59e0b" stroke="#0f172a" stroke-width="2.5"/>
+  <circle cx="68" cy="69" r="13" fill="#1e293b" stroke="#0f172a" stroke-width="4"/>
+  <circle cx="68" cy="69" r="5.5" fill="#f59e0b" stroke="#0f172a" stroke-width="2.5"/>
+</svg>
+
+### 2.4 Coupled Grain Wagon with Hitch Drawbar & Pin (`viewBox="0 0 340 140"`)
 <svg viewBox="0 0 340 140" width="340" height="136">
   <line x1="268" y1="82" x2="338" y2="82" stroke="#0f172a" stroke-width="10" stroke-linecap="round"/>
   <circle cx="332" cy="82" r="7" fill="#f59e0b" stroke="#0f172a" stroke-width="3"/>
@@ -63,7 +69,7 @@ Use these canonical color tokens and inline SVG templates across all `zero-telem
   <circle cx="228" cy="108" r="10" fill="#f59e0b"/>
 </svg>
 
-### 2.4 Corrugated Grain Bin / Silo (`viewBox="0 0 140 180"`)
+### 2.5 Corrugated Grain Bin / Silo (`viewBox="0 0 140 180"`)
 <svg viewBox="0 0 140 180" width="120" height="154">
   <polygon points="70,14 18,54 122,54" fill="#cbd5e1" stroke="#0f172a" stroke-width="5" stroke-linejoin="round"/>
   <rect x="22" y="54" width="96" height="114" rx="6" fill="#e2e8f0" stroke="#0f172a" stroke-width="5"/>
@@ -72,7 +78,7 @@ Use these canonical color tokens and inline SVG templates across all `zero-telem
   <line x1="22" y1="138" x2="118" y2="138" stroke="#94a3b8" stroke-width="4"/>
 </svg>
 
-### 2.5 Harvest Crop Tokens (`viewBox="0 0 96 96"`)
+### 2.6 Harvest Crop Tokens (`viewBox="0 0 96 96"`)
 * **Pumpkin:**
   <svg viewBox="0 0 96 96" width="92" height="92"><path d="M44 14 C44 8, 54 8, 54 18 L52 28 L44 28 Z" fill="#16a34a" stroke="#0f172a" stroke-width="4"/><ellipse cx="32" cy="56" rx="20" ry="26" fill="#ea580c" stroke="#0f172a" stroke-width="4"/><ellipse cx="64" cy="56" rx="20" ry="26" fill="#ea580c" stroke="#0f172a" stroke-width="4"/><ellipse cx="48" cy="56" rx="22" ry="28" fill="#f97316" stroke="#0f172a" stroke-width="4"/></svg>
 * **Apple:**
@@ -80,7 +86,7 @@ Use these canonical color tokens and inline SVG templates across all `zero-telem
 * **Ear of Corn:**
   <svg viewBox="0 0 96 96" width="92" height="92"><ellipse cx="48" cy="48" rx="18" ry="32" fill="#f59e0b" stroke="#0f172a" stroke-width="4"/><path d="M30 56 Q22 78 48 84 Q38 66 32 52 Z" fill="#16a34a" stroke="#0f172a" stroke-width="4" stroke-linejoin="round"/><path d="M66 56 Q74 78 48 84 Q58 66 64 52 Z" fill="#16a34a" stroke="#0f172a" stroke-width="4" stroke-linejoin="round"/></svg>
 
-### 2.6 Geometric Shape Primitives (`viewBox="0 0 104 104"`)
+### 2.7 Geometric Shape Primitives (`viewBox="0 0 104 104"`)
 * **Circle:** `<circle cx="52" cy="52" r="40" fill="#dc2626" stroke="#0f172a" stroke-width="5"/>`
 * **Square:** `<rect x="14" y="14" width="76" height="76" rx="10" fill="#16a34a" stroke="#0f172a" stroke-width="5"/>`
 * **Triangle:** `<polygon points="52,12 92,88 12,88" fill="#f59e0b" stroke="#0f172a" stroke-width="5" stroke-linejoin="round"/>`
