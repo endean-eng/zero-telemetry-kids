@@ -52,20 +52,20 @@ While AI code generation has collapsed the software engineering time for determi
 * **Personal Developer Account Testing Wall:** Personal Play Console accounts mandate recruiting $\ge 12\text{ human testers}$ to opt in and maintain continuous installation for $14\text{ consecutive days}$ before production access is unlocked.
 * **Organization Account Verification Overhead:** Registering via a corporate LLC bypasses the 12-tester wall but requires D-U-N-S verification, corporate identity matching, and $3\text{–}5\text{ business days}$ of administrative processing.
 * **"Designed for Families" & COPPA Manual Queue:** Targeting Ages 5 & Under triggers mandatory human review ($3\text{–}7+\text{ days}$ per release), strict binary audits against third-party SDK telemetry (which routinely rejects default Unity builds), a live hosted Privacy Policy URL, IARC content ratings, and Data Safety declarations.
-* **Discovery Gatekeeping ("Teacher Approved"):** Without Google's slow internal "Teacher Approved" review badge and paid User Acquisition ($\$3.00+\text{ per install}$), a free, ad-free app remains buried beneath VC-backed subscription funnels.
+* **Discovery Gatekeeping ("Teacher Approved"):** Without Google's slow internal "Teacher Approved" review badge and paid User Acquisition ($3.00+\text{ per install}$), a free, ad-free app remains buried beneath VC-backed subscription funnels.
 * **Rolling Target SDK Maintenance Tax:** Google Play mandates annual Target API Level recompilation every August/November, turning a finished static game into a permanent annual maintenance liability.
 
 #### Expected Value (EV) & Opportunity Cost Comparison
 
-Evaluating distribution paths against an operator opportunity-cost benchmark of $C_{\text{opp}} = \$60/\text{hr}$ ($\$1.00/\text{min}$):
+Evaluating distribution paths against an operator opportunity-cost benchmark of $C_{\text{opp}} = 60/\text{hr}$ ($1.00/\text{min}$):
 
 $$C_{\text{total}} = H_{\text{human}} \times C_{\text{opp}} + C_{\text{fees}} + \sum_{y=1}^{N} \left(H_{\text{maint}, y} \times C_{\text{opp}}\right)$$
 
-| Execution Path | Active Human Time ($H_{\text{human}}$) | Initial Opportunity Cost ($\text{@ } \$60/\text{hr}$) | Annual Maintenance Cost ($H_{\text{maint}} \times \$60$) | Calendar Time to Live | Cross-Platform Reach | Strategic Verdict |
+| Execution Path | Active Human Time ($H_{\text{human}}$) | Initial Opportunity Cost ($\text{@ } 60/\text{hr}$) | Annual Maintenance Cost ($H_{\text{maint}} \times 60$) | Calendar Time to Live | Cross-Platform Reach | Strategic Verdict |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| **Path A: Google Play Store (Personal Account)** | $12\text{–}15\text{ hrs}$ | $\$720\text{–}\$900 + \$25$ | $\$120\text{–}\$180/\text{yr}$ | $3\text{–}4\text{ Weeks}$ (14-day gate) | Android Only | **Rejected:** High bureaucratic drag; $80\%$ non-engineering compliance work. |
-| **Path B: Google Play Store (LLC Org Account)** | $10\text{–}14\text{ hrs}$ | $\$600\text{–}\$840 + \$25$ | $\$120\text{–}\$180/\text{yr}$ | $1\text{–}2\text{ Weeks}$ (D-U-N-S + COPPA) | Android Only | **Rejected:** Ongoing annual SDK target maintenance and zero iOS/iPad reach. |
-| **Path C: Open-Source PWA (`endean-eng/zero-telemetry-kids`) + `deaninno.com` Mirror** | **$3.0\text{–}4.5\text{ hrs}$** | **$\$180\text{–}\$270$** | **$\$0/\text{yr}$** | **Same Day** | **Android + iPadOS + iOS + Desktop** | **Selected (Optimal ROI):** Zero store gatekeeping, $100\%$ offline execution, dual portfolio/community utility. |
+| **Path A: Google Play Store (Personal Account)** | $12\text{–}15\text{ hrs}$ | $720\text{–}900 + 25$ | $120\text{–}180/\text{yr}$ | $3\text{–}4\text{ Weeks}$ (14-day gate) | Android Only | **Rejected:** High bureaucratic drag; $80\%$ non-engineering compliance work. |
+| **Path B: Google Play Store (LLC Org Account)** | $10\text{–}14\text{ hrs}$ | $600\text{–}840 + 25$ | $120\text{–}180/\text{yr}$ | $1\text{–}2\text{ Weeks}$ (D-U-N-S + COPPA) | Android Only | **Rejected:** Ongoing annual SDK target maintenance and zero iOS/iPad reach. |
+| **Path C: Open-Source PWA (`endean-eng/zero-telemetry-kids`) + `deaninno.com` Mirror** | **$3.0\text{–}4.5\text{ hrs}$** | **$180\text{–}270$** | **$0/\text{yr}$** | **Same Day** | **Android + iPadOS + iOS + Desktop** | **Selected (Optimal ROI):** Zero store gatekeeping, $100\%$ offline execution, dual portfolio/community utility. |
 
 ---
 

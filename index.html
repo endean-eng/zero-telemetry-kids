@@ -91,75 +91,197 @@
       cursor: pointer;
     }
 
-    /* Launcher View */
+    /* Launcher View (Scrollable vertically for All Games drawer) */
     #launcher-view {
       flex: 1;
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: center;
-      padding: 24px;
+      justify-content: flex-start;
+      padding: 20px 24px 40px 24px;
       overflow-y: auto;
       touch-action: pan-y;
     }
 
     .launcher-header {
       text-align: center;
-      margin-bottom: 24px;
+      margin-bottom: 16px;
     }
 
     .launcher-header h1 {
-      margin: 0 0 6px 0;
-      font-size: clamp(1.5rem, 3vw, 2.25rem);
+      margin: 0 0 4px 0;
+      font-size: clamp(1.4rem, 2.8vw, 2rem);
       color: var(--ink-primary);
     }
 
     .launcher-header p {
       margin: 0;
-      font-size: 1rem;
+      font-size: 0.92rem;
       color: var(--ink-muted);
     }
 
-    #game-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 24px;
+    /* Tier 1: Roguelike Featured Draft Section (2 Prominent Hero Choices) */
+    .featured-section {
       width: 100%;
-      max-width: 980px;
+      max-width: 880px;
+      background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+      border: 4px solid #0f172a;
+      border-radius: 28px;
+      padding: 18px 24px 22px 24px;
+      margin-bottom: 24px;
+      box-shadow: 0 10px 0 #0f172a;
     }
 
-    .game-card {
-      min-height: 200px;
+    .featured-header-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+
+    .featured-badge {
+      font-size: 1.15rem;
+      font-weight: 900;
+      color: var(--ink-primary);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .reroll-btn {
+      min-height: 54px;
+      padding: 8px 18px;
+      background: #fef08a;
+      border: 3px solid #0f172a;
+      border-radius: 999px;
+      box-shadow: 0 4px 0 #0f172a;
+      font-size: 1rem;
+      font-weight: 800;
+      color: #0f172a;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: transform 0.12s ease;
+    }
+
+    .reroll-btn:active {
+      transform: translateY(3px);
+      box-shadow: 0 1px 0 #0f172a;
+    }
+
+    #featured-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 22px;
+      width: 100%;
+    }
+
+    .game-card.hero-card {
+      min-height: 210px;
       background: var(--bg-card);
-      border: 4px solid var(--border-soft);
+      border: 5px solid var(--ink-primary);
       border-radius: 24px;
-      padding: 20px;
+      padding: 22px;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
       gap: 14px;
       cursor: pointer;
-      box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08);
-      transition: transform 0.15s ease, border-color 0.15s ease;
+      box-shadow: 0 8px 0 rgba(15, 23, 42, 0.9);
+      transition: transform 0.15s ease;
     }
 
-    .game-card:active {
-      transform: scale(0.96);
+    .game-card.hero-card:active {
+      transform: translateY(5px);
+      box-shadow: 0 3px 0 rgba(15, 23, 42, 0.9);
     }
 
-    .game-card-icon {
-      width: 96px;
-      height: 96px;
+    .hero-card .game-card-icon {
+      width: 112px;
+      height: 112px;
       display: flex;
       align-items: center;
       justify-content: center;
     }
 
-    .game-card-title {
-      font-size: 1.25rem;
-      font-weight: 800;
+    .hero-card .game-card-icon svg {
+      width: 104px;
+      height: 104px;
+    }
+
+    .hero-card .game-card-title {
+      font-size: 1.45rem;
+      font-weight: 900;
       text-align: center;
+      color: var(--ink-primary);
+    }
+
+    /* Tier 2: Full Game Library Tucked Below */
+    .library-section {
+      width: 100%;
+      max-width: 880px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .library-header {
+      font-size: 0.95rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--ink-muted);
+      text-align: center;
+    }
+
+    #game-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+      gap: 14px;
+      width: 100%;
+    }
+
+    .game-card.compact-card {
+      min-height: 116px;
+      background: rgba(255, 255, 255, 0.85);
+      border: 3px solid var(--border-soft);
+      border-radius: 18px;
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 12px;
+      cursor: pointer;
+      transition: transform 0.12s ease;
+    }
+
+    .game-card.compact-card:active {
+      transform: scale(0.97);
+    }
+
+    .compact-card .game-card-icon {
+      width: 60px;
+      height: 60px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .compact-card .game-card-icon svg {
+      width: 56px;
+      height: 56px;
+    }
+
+    .compact-card .game-card-title {
+      font-size: 1.02rem;
+      font-weight: 800;
+      text-align: left;
       color: var(--ink-primary);
     }
 
@@ -241,13 +363,30 @@
     <!-- Smart OS-Aware Parent Install Banner -->
     <div id="install-banner" role="region" aria-label="Install App Prompt"></div>
 
-    <!-- Main Game Launcher Grid -->
+    <!-- Main Game Launcher Grid (Two-Tier Roguelike Choice + Full Library) -->
     <main id="launcher-view">
       <header class="launcher-header">
         <h1>Zero-Telemetry Kids</h1>
-        <p>Tap a picture to play! (Parents: Hold both top corners for 2 seconds inside any game to exit)</p>
+        <p>Pick one of Today's 2 Featured Games, or browse All Games below!</p>
       </header>
-      <section id="game-grid" aria-label="Educational Games"></section>
+
+      <!-- Tier 1: Prominent 2-Game Featured Draft -->
+      <section class="featured-section" aria-label="Featured Game Picks">
+        <div class="featured-header-bar">
+          <div class="featured-badge">🌟 Ready to Play (Pick 1 of 2!)</div>
+          <button type="button" class="reroll-btn" id="btn-reroll-featured" aria-label="Deal 2 New Game Picks">
+            <span>🎲</span>
+            <span>Spin New Picks</span>
+          </button>
+        </div>
+        <div id="featured-grid"></div>
+      </section>
+
+      <!-- Tier 2: Full Game Library Tucked Below -->
+      <section class="library-section" aria-label="All Games Library">
+        <div class="library-header">All Games Library</div>
+        <div id="game-grid"></div>
+      </section>
     </main>
 
     <!-- Active Mini-Game Stage -->

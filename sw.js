@@ -1,9 +1,10 @@
 /**
  * @file sw.js
- * @description Cache-first Service Worker guaranteeing 100% offline Airplane Mode execution.
+ * @description Service Worker guaranteeing 100% offline Airplane Mode execution in production,
+ *              while using network-first on localhost so local edits appear immediately on refresh.
  */
 
-const CACHE_NAME = 'zero-telemetry-kids-v1';
+const CACHE_NAME = 'zero-telemetry-kids-v2';
 
 const PRECACHE_ASSETS = [
   './',
@@ -40,6 +41,25 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
 
+  const isLocalhost =
+    self.location.hostname === 'localhost' ||
+    self.location.hostname === '127.0.0.1';
+
+  // Local development: Network-First so code edits show up on normal browser refresh
+  if (isLocalhost) {
+    event.respondWith(
+      fetch(event.request)
+        .then((networkResponse) => {
+          const clone = networkResponse.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+          return networkResponse;
+        })
+        .catch(() => caches.match(event.request))
+    );
+    return;
+  }
+
+  // Production (GitHub Pages / deaninno.com): Cache-First for instant Airplane Mode
   event.respondWith(
     caches.match(event.request).then((cachedResponse) => {
       if (cachedResponse) {

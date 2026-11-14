@@ -1,7 +1,7 @@
 # `zero-telemetry-kids` — Implementation Roadmap & Pedagogical Queue
 
 > **Status:** Active Repository Initialization  
-> **Target Budget:** $2.3\text{ hrs}$ Human Time / $1.6\text{ hrs}$ Agent Time ($\approx \$140\text{ EV cost at } C_{\text{opp}} = \$60/\text{hr}$)  
+> **Target Budget:** $2.3\text{ hrs}$ Human Time / $1.6\text{ hrs}$ Agent Time ($\approx 140\text{ EV cost at } C_{\text{opp}} = 60/\text{hr}$)  
 > **Canonical Repo:** `endean-eng/zero-telemetry-kids`  
 > **Parent Mirror:** `deaninno.com/kids`
 

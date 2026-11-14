@@ -1,8 +1,7 @@
 /**
  * @file src/games/tractor-harvest-count.js
- * @description Launch Module 2 (L-02): Tractor Harvest Counting (1–10).
- *              Pedagogical Basis: Montessori Spindle Box & Number Rods (One-to-One Correspondence).
- *              Motor Ergonomics: >= 96x96px harvest items, +24px magnetic wagon bed snap, spoken count on each drop.
+ * @description Launch Module 2 (L-02): Tractor Harvest Counting (Marble-Bag 1–9, Fixed-Valley Pyramid Stack,
+ *              Coupled Hitch Drawbar, Animated Exhaust Smoke, and Slower 3.4s Drive-Off Event).
  */
 
 const NUMBER_WORDS = [
@@ -15,22 +14,20 @@ const NUMBER_WORDS = [
   'Six',
   'Seven',
   'Eight',
-  'Nine',
-  'Ten'
+  'Nine'
 ];
 
 const PENTATONIC_SCALE = [
-  261.63, // C4
-  293.66, // D4
-  329.63, // E4
-  392.00, // G4
-  440.00, // A4
-  523.25, // C5
-  587.33, // D5
-  659.25, // E5
-  783.99, // G5
-  880.00, // A5
-  1046.50 // C6
+  261.63,
+  293.66,
+  329.63,
+  392.0,
+  440.0,
+  523.25,
+  587.33,
+  659.25,
+  783.99,
+  880.0
 ];
 
 const CROPS = [
@@ -38,41 +35,47 @@ const CROPS = [
     id: 'pumpkin',
     singular: 'pumpkin',
     plural: 'pumpkins',
-    svg: `
-      <svg viewBox="0 0 96 96" width="92" height="92">
-        <path d="M44 14 C44 8, 54 8, 54 18 L52 28 L44 28 Z" fill="#16a34a" stroke="#0f172a" stroke-width="4"/>
-        <ellipse cx="32" cy="56" rx="20" ry="26" fill="#ea580c" stroke="#0f172a" stroke-width="4"/>
-        <ellipse cx="64" cy="56" rx="20" ry="26" fill="#ea580c" stroke="#0f172a" stroke-width="4"/>
-        <ellipse cx="48" cy="56" rx="22" ry="28" fill="#f97316" stroke="#0f172a" stroke-width="4"/>
-      </svg>
-    `
+    svg:
+      '<svg viewBox="0 0 96 96" width="92" height="92">' +
+      '<path d="M44 14 C44 8, 54 8, 54 18 L52 28 L44 28 Z" fill="#16a34a" stroke="#0f172a" stroke-width="4"/>' +
+      '<ellipse cx="32" cy="56" rx="20" ry="26" fill="#ea580c" stroke="#0f172a" stroke-width="4"/>' +
+      '<ellipse cx="64" cy="56" rx="20" ry="26" fill="#ea580c" stroke="#0f172a" stroke-width="4"/>' +
+      '<ellipse cx="48" cy="56" rx="22" ry="28" fill="#f97316" stroke="#0f172a" stroke-width="4"/>' +
+      '</svg>'
   },
   {
     id: 'apple',
     singular: 'apple',
     plural: 'apples',
-    svg: `
-      <svg viewBox="0 0 96 96" width="92" height="92">
-        <path d="M48 24 L52 10" stroke="#78350f" stroke-width="6" stroke-linecap="round"/>
-        <ellipse cx="60" cy="18" rx="10" ry="5" transform="rotate(-20 60 18)" fill="#16a34a" stroke="#0f172a" stroke-width="3"/>
-        <circle cx="48" cy="56" r="28" fill="#dc2626" stroke="#0f172a" stroke-width="4"/>
-        <circle cx="38" cy="46" r="6" fill="#fca5a5"/>
-      </svg>
-    `
+    svg:
+      '<svg viewBox="0 0 96 96" width="92" height="92">' +
+      '<path d="M48 24 L52 10" stroke="#78350f" stroke-width="6" stroke-linecap="round"/>' +
+      '<ellipse cx="60" cy="18" rx="10" ry="5" transform="rotate(-20 60 18)" fill="#16a34a" stroke="#0f172a" stroke-width="3"/>' +
+      '<circle cx="48" cy="56" r="28" fill="#dc2626" stroke="#0f172a" stroke-width="4"/>' +
+      '<circle cx="38" cy="46" r="6" fill="#fca5a5"/>' +
+      '</svg>'
   },
   {
     id: 'corn',
     singular: 'ear of corn',
     plural: 'ears of corn',
-    svg: `
-      <svg viewBox="0 0 96 96" width="92" height="92">
-        <ellipse cx="48" cy="48" rx="18" ry="32" fill="#f59e0b" stroke="#0f172a" stroke-width="4"/>
-        <path d="M30 56 Q22 78 48 84 Q38 66 32 52 Z" fill="#16a34a" stroke="#0f172a" stroke-width="4" stroke-linejoin="round"/>
-        <path d="M66 56 Q74 78 48 84 Q58 66 64 52 Z" fill="#16a34a" stroke="#0f172a" stroke-width="4" stroke-linejoin="round"/>
-      </svg>
-    `
+    svg:
+      '<svg viewBox="0 0 96 96" width="92" height="92">' +
+      '<ellipse cx="48" cy="48" rx="18" ry="32" fill="#f59e0b" stroke="#0f172a" stroke-width="4"/>' +
+      '<path d="M30 56 Q22 78 48 84 Q38 66 32 52 Z" fill="#16a34a" stroke="#0f172a" stroke-width="4" stroke-linejoin="round"/>' +
+      '<path d="M66 56 Q74 78 48 84 Q58 66 64 52 Z" fill="#16a34a" stroke="#0f172a" stroke-width="4" stroke-linejoin="round"/>' +
+      '</svg>'
   }
 ];
+
+function shuffle(arr) {
+  const copy = [...arr];
+  for (let i = copy.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [copy[i], copy[j]] = [copy[j], copy[i]];
+  }
+  return copy;
+}
 
 export default class TractorHarvestCountGame {
   constructor() {
@@ -82,8 +85,9 @@ export default class TractorHarvestCountGame {
     this.PointerManager = null;
     this.cleanups = [];
     this.timers = [];
-    this.targetSequence = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
-    this.seqIndex = 0;
+    this.marbleBag = [];
+    this.lastNumber = null;
+    this.roundCounter = 0;
     this.currentCount = 0;
     this.targetCount = 1;
     this.currentCrop = CROPS[0];
@@ -94,8 +98,23 @@ export default class TractorHarvestCountGame {
     this.audio = audioApi;
     this.speech = speechApi;
     this.PointerManager = PointerManager;
-    this.seqIndex = 0;
+    this.marbleBag = [];
+    this.lastNumber = null;
+    this.roundCounter = 0;
     this.startRound();
+  }
+
+  _drawNextNumberFromMarbleBag() {
+    if (this.marbleBag.length === 0) {
+      const freshBag = shuffle([1, 2, 3, 4, 5, 6, 7, 8, 9]);
+      if (this.lastNumber !== null && freshBag[0] === this.lastNumber) {
+        [freshBag[0], freshBag[1]] = [freshBag[1], freshBag[0]];
+      }
+      this.marbleBag = freshBag;
+    }
+    const nextNum = this.marbleBag.shift();
+    this.lastNumber = nextNum;
+    return nextNum;
   }
 
   _schedule(fn, delayMs) {
@@ -108,173 +127,174 @@ export default class TractorHarvestCountGame {
     this.cleanups.forEach((fn) => fn());
     this.cleanups = [];
     this.currentCount = 0;
-    this.targetCount = this.targetSequence[this.seqIndex % this.targetSequence.length];
-    this.currentCrop = CROPS[this.seqIndex % CROPS.length];
+    this.targetCount = this._drawNextNumberFromMarbleBag();
+    this.currentCrop = CROPS[this.roundCounter % CROPS.length];
+    this.roundCounter += 1;
 
     const cropLabel =
       this.targetCount === 1 ? this.currentCrop.singular : this.currentCrop.plural;
-    const promptText = `Load ${NUMBER_WORDS[this.targetCount]} ${cropLabel} into the wagon!`;
+    const promptText =
+      'Load ' + NUMBER_WORDS[this.targetCount] + ' ' + cropLabel + ' into the wagon!';
 
-    this.container.innerHTML = `
-      <style>
-        .thc-stage {
-          width: 100%;
-          height: 100%;
-          display: flex;
-          flex-direction: column;
-          justify-content: space-between;
-          align-items: center;
-          background: linear-gradient(180deg, #e0f2fe 0%, #bae6fd 52%, #fef08a 52%, #fde047 100%);
-          padding: 12px 110px 18px 110px;
-          overflow: hidden;
-          position: relative;
-        }
-        .thc-prompt-btn {
-          min-width: 96px;
-          min-height: 88px;
-          padding: 8px 24px;
-          border-radius: 999px;
-          background: #ffffff;
-          border: 4px solid #0f172a;
-          box-shadow: 0 5px 0 #0f172a;
-          font-size: 1.2rem;
-          font-weight: 800;
-          color: #0f172a;
-          display: flex;
-          align-items: center;
-          gap: 12px;
-          cursor: pointer;
-        }
-        .thc-rig-row {
-          display: flex;
-          align-items: flex-end;
-          justify-content: center;
-          gap: 8px;
-          transition: transform 0.9s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        .thc-rig-row.drive-away {
-          transform: translateX(110vw);
-        }
-        .thc-wagon-zone {
-          position: relative;
-          width: clamp(280px, 42vw, 420px);
-          height: 170px;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: flex-end;
-        }
-        .thc-wagon-loaded {
-          position: absolute;
-          top: 6px;
-          left: 24px;
-          right: 24px;
-          height: 64px;
-          display: flex;
-          flex-wrap: wrap;
-          align-items: center;
-          justify-content: center;
-          gap: 2px;
-          pointer-events: none;
-        }
-        .thc-wagon-loaded .mini-crop svg {
-          width: 44px;
-          height: 44px;
-        }
-        .thc-badge {
-          position: absolute;
-          top: 52px;
-          background: #ffffff;
-          border: 4px solid #0f172a;
-          border-radius: 16px;
-          padding: 2px 18px;
-          font-size: 2rem;
-          font-weight: 900;
-          color: #0f172a;
-          pointer-events: none;
-        }
-        .thc-field-grid {
-          display: flex;
-          flex-wrap: wrap;
-          justify-content: center;
-          align-items: center;
-          gap: 14px;
-          max-width: 880px;
-          min-height: 196px;
-          padding: 10px 20px;
-          background: rgba(255, 255, 255, 0.78);
-          border: 4px solid #0f172a;
-          border-radius: 26px;
-        }
-        .thc-crop-item {
-          width: 96px;
-          height: 96px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          cursor: grab;
-          touch-action: none;
-          transition: transform 0.2s ease;
-          filter: drop-shadow(0 5px 6px rgba(15, 23, 42, 0.2));
-        }
-        .thc-crop-item.dragging {
-          transition: none;
-          z-index: 100;
-          transform: scale(1.15);
-        }
-        .thc-crop-item.loaded {
-          visibility: hidden;
-          pointer-events: none;
-        }
-      </style>
+    const cropsHtml = Array.from({ length: this.targetCount })
+      .map(
+        (_, i) =>
+          '<div class="thc-crop-item" data-idx="' +
+          i +
+          '">' +
+          this.currentCrop.svg +
+          '</div>'
+      )
+      .join('');
 
-      <div class="thc-stage">
-        <button type="button" class="thc-prompt-btn" id="thc-repeat-btn">
-          <span style="font-size:1.7rem;">🔊</span>
-          <span>${promptText}</span>
-        </button>
+    // Pre-build 5 fixed bottom slots (0..4) and 4 fixed valley top slots (5..8)
+    // Because all 5 bottom slots and 4 top slots have fixed 44px widths,
+    // the 4 top slots ALWAYS sit mathematically centered over the 4 valleys between the 5 bottom slots!
+    const bottomSlotsHtml = [0, 1, 2, 3, 4]
+      .map((slotIdx) => '<div class="thc-slot" id="thc-slot-' + slotIdx + '"></div>')
+      .join('');
 
-        <div class="thc-rig-row" id="thc-rig">
-          <!-- Numbered Grain Wagon Drop Zone -->
-          <div class="thc-wagon-zone" id="thc-wagon-drop">
-            <div class="thc-wagon-loaded" id="thc-loaded-tray"></div>
-            <svg viewBox="0 0 320 140" width="100%" height="136">
-              <polygon points="16,24 304,24 276,98 44,98" fill="#ea580c" stroke="#0f172a" stroke-width="5" stroke-linejoin="round"/>
-              <line x1="290" y1="78" x2="320" y2="78" stroke="#0f172a" stroke-width="8" stroke-linecap="round"/>
-              <circle cx="84" cy="108" r="24" fill="#1e293b" stroke="#0f172a" stroke-width="5"/>
-              <circle cx="84" cy="108" r="10" fill="#f59e0b"/>
-              <circle cx="236" cy="108" r="24" fill="#1e293b" stroke="#0f172a" stroke-width="5"/>
-              <circle cx="236" cy="108" r="10" fill="#f59e0b"/>
-            </svg>
-            <div class="thc-badge" id="thc-counter-badge">${this.currentCount} / ${this.targetCount}</div>
-          </div>
+    const topValleySlotsHtml = [5, 6, 7, 8]
+      .map((slotIdx) => '<div class="thc-slot" id="thc-slot-' + slotIdx + '"></div>')
+      .join('');
 
-          <!-- Green Row-Crop Tractor -->
-          <svg viewBox="0 0 180 140" width="164" height="128">
-            <rect x="48" y="20" width="54" height="46" rx="8" fill="#16a34a" stroke="#0f172a" stroke-width="5"/>
-            <rect x="58" y="28" width="34" height="26" rx="4" fill="#bae6fd" stroke="#0f172a" stroke-width="3"/>
-            <rect x="40" y="54" width="112" height="44" rx="10" fill="#16a34a" stroke="#0f172a" stroke-width="5"/>
-            <rect x="132" y="30" width="10" height="26" rx="3" fill="#334155" stroke="#0f172a" stroke-width="3"/>
-            <circle cx="66" cy="98" r="32" fill="#1e293b" stroke="#0f172a" stroke-width="5"/>
-            <circle cx="66" cy="98" r="14" fill="#f59e0b" stroke="#0f172a" stroke-width="3"/>
-            <circle cx="132" cy="106" r="22" fill="#1e293b" stroke="#0f172a" stroke-width="5"/>
-            <circle cx="132" cy="106" r="9" fill="#f59e0b" stroke="#0f172a" stroke-width="3"/>
-          </svg>
-        </div>
-
-        <div class="thc-field-grid">
-          ${Array.from({ length: this.targetCount })
-            .map(
-              (_, i) => `
-            <div class="thc-crop-item" data-idx="${i}">
-              ${this.currentCrop.svg}
-            </div>
-          `
-            )
-            .join('')}
-        </div>
-      </div>
-    `;
+    this.container.innerHTML =
+      '<style>' +
+      '.thc-stage {' +
+      '  width: 100%; height: 100%; display: flex; flex-direction: column;' +
+      '  justify-content: space-between; align-items: center;' +
+      '  background: linear-gradient(180deg, #e0f2fe 0%, #bae6fd 52%, #fef08a 52%, #fde047 100%);' +
+      '  padding: 12px 110px 18px 110px; overflow: hidden; position: relative;' +
+      '}' +
+      '.thc-prompt-btn {' +
+      '  min-width: 96px; min-height: 84px; padding: 8px 24px; border-radius: 999px;' +
+      '  background: #ffffff; border: 4px solid #0f172a; box-shadow: 0 5px 0 #0f172a;' +
+      '  font-size: 1.2rem; font-weight: 800; color: #0f172a; display: flex; align-items: center; gap: 12px; cursor: pointer;' +
+      '}' +
+      '.thc-rig-row {' +
+      '  display: flex; align-items: flex-end; justify-content: center; gap: 0px; margin-top: 24px;' +
+      '  transition: transform 3.4s cubic-bezier(0.35, 0, 0.25, 1);' +
+      '}' +
+      '.thc-rig-row.drive-away { transform: translateX(115vw); }' +
+      '@keyframes thcChug {' +
+      '  0%, 100% { transform: translateY(0px); }' +
+      '  25% { transform: translateY(-6px); }' +
+      '  50% { transform: translateY(0px); }' +
+      '  75% { transform: translateY(-4px); }' +
+      '}' +
+      '.thc-rig-row.chug-bounce { animation: thcChug 0.6s ease-in-out 2; }' +
+      /* Exhaust Smoke Animations */
+      '@keyframes thcSmokePuff {' +
+      '  0% { transform: translate(0px, 0px) scale(0.4); opacity: 0.85; }' +
+      '  60% { opacity: 0.6; }' +
+      '  100% { transform: translate(-28px, -42px) scale(1.65); opacity: 0; }' +
+      '}' +
+      '.thc-smoke { opacity: 0; transform-origin: center; }' +
+      '.thc-rig-row.chug-bounce .thc-smoke-1,' +
+      '.thc-rig-row.drive-away .thc-smoke-1 {' +
+      '  animation: thcSmokePuff 0.9s ease-out infinite;' +
+      '}' +
+      '.thc-rig-row.chug-bounce .thc-smoke-2,' +
+      '.thc-rig-row.drive-away .thc-smoke-2 {' +
+      '  animation: thcSmokePuff 0.9s ease-out 0.3s infinite;' +
+      '}' +
+      '.thc-rig-row.chug-bounce .thc-smoke-3,' +
+      '.thc-rig-row.drive-away .thc-smoke-3 {' +
+      '  animation: thcSmokePuff 0.9s ease-out 0.6s infinite;' +
+      '}' +
+      '.thc-wagon-zone {' +
+      '  position: relative; width: 340px; height: 196px;' +
+      '  display: flex; flex-direction: column; align-items: center; justify-content: flex-end;' +
+      '}' +
+      '.thc-tractor-svg {' +
+      '  margin-left: -28px; position: relative; z-index: 12; overflow: visible;' +
+      '}' +
+      /* Fixed-Slot Hexagonal Pyramid Grid: 4 Valley Slots centered over 5 Base Slots */
+      '.thc-wagon-loaded {' +
+      '  position: absolute; bottom: 108px; left: 16px; width: 280px;' +
+      '  display: flex; flex-direction: column-reverse; align-items: center; justify-content: center;' +
+      '  pointer-events: none; z-index: 5;' +
+      '}' +
+      '.thc-wagon-row {' +
+      '  display: flex; align-items: center; justify-content: center; gap: 4px; height: 36px;' +
+      '}' +
+      '.thc-wagon-row.row-top {' +
+      '  margin-bottom: -10px; z-index: 4;' +
+      '}' +
+      '.thc-wagon-row.row-bottom { z-index: 6; }' +
+      '.thc-slot {' +
+      '  width: 44px; height: 44px; display: flex; align-items: center; justify-content: center;' +
+      '}' +
+      '.thc-slot svg { width: 42px; height: 42px; }' +
+      '.thc-wagon-svg { position: relative; z-index: 10; }' +
+      '.thc-badge {' +
+      '  position: absolute; bottom: 48px; left: 46%; transform: translateX(-50%);' +
+      '  background: #ffffff; border: 4px solid #0f172a;' +
+      '  border-radius: 16px; padding: 2px 18px; font-size: 1.9rem; font-weight: 900; color: #0f172a; pointer-events: none; z-index: 15;' +
+      '}' +
+      '.thc-field-grid {' +
+      '  display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 14px;' +
+      '  max-width: 880px; min-height: 186px; padding: 10px 24px; background: rgba(255, 255, 255, 0.82);' +
+      '  border: 4px solid #0f172a; border-radius: 26px;' +
+      '}' +
+      '.thc-crop-item {' +
+      '  width: 96px; height: 96px; display: flex; align-items: center; justify-content: center;' +
+      '  cursor: grab; touch-action: none; transition: transform 0.2s ease; filter: drop-shadow(0 5px 6px rgba(15, 23, 42, 0.2));' +
+      '}' +
+      '.thc-crop-item.dragging { transition: none; z-index: 100; }' +
+      '.thc-crop-item.loaded { visibility: hidden; pointer-events: none; }' +
+      '</style>' +
+      '<div class="thc-stage">' +
+      '<button type="button" class="thc-prompt-btn" id="thc-repeat-btn">' +
+      '<span style="font-size:1.7rem;">🔊</span>' +
+      '<span>' +
+      promptText +
+      '</span>' +
+      '</button>' +
+      '<div class="thc-rig-row" id="thc-rig">' +
+      '<div class="thc-wagon-zone" id="thc-wagon-drop">' +
+      '<div class="thc-wagon-loaded">' +
+      '<div class="thc-wagon-row row-bottom">' +
+      bottomSlotsHtml +
+      '</div>' +
+      '<div class="thc-wagon-row row-top">' +
+      topValleySlotsHtml +
+      '</div>' +
+      '</div>' +
+      '<svg class="thc-wagon-svg" viewBox="0 0 340 140" width="340" height="136">' +
+      '<line x1="268" y1="82" x2="338" y2="82" stroke="#0f172a" stroke-width="10" stroke-linecap="round"/>' +
+      '<circle cx="332" cy="82" r="7" fill="#f59e0b" stroke="#0f172a" stroke-width="3"/>' +
+      '<polygon points="16,24 296,24 268,98 44,98" fill="#ea580c" stroke="#0f172a" stroke-width="5" stroke-linejoin="round"/>' +
+      '<circle cx="84" cy="108" r="24" fill="#1e293b" stroke="#0f172a" stroke-width="5"/>' +
+      '<circle cx="84" cy="108" r="10" fill="#f59e0b"/>' +
+      '<circle cx="228" cy="108" r="24" fill="#1e293b" stroke="#0f172a" stroke-width="5"/>' +
+      '<circle cx="228" cy="108" r="10" fill="#f59e0b"/>' +
+      '</svg>' +
+      '<div class="thc-badge" id="thc-counter-badge">' +
+      this.currentCount +
+      ' / ' +
+      this.targetCount +
+      '</div>' +
+      '</div>' +
+      '<svg class="thc-tractor-svg" viewBox="0 -30 160 170" width="154" height="156">' +
+      /* Animated Exhaust Smoke Puffs above the stack */
+      '<circle class="thc-smoke thc-smoke-1" cx="117" cy="18" r="9" fill="#cbd5e1" stroke="#64748b" stroke-width="2"/>' +
+      '<circle class="thc-smoke thc-smoke-2" cx="117" cy="18" r="11" fill="#e2e8f0" stroke="#64748b" stroke-width="2"/>' +
+      '<circle class="thc-smoke thc-smoke-3" cx="117" cy="18" r="8" fill="#f1f5f9" stroke="#64748b" stroke-width="2"/>' +
+      '<rect x="28" y="20" width="54" height="46" rx="8" fill="#16a34a" stroke="#0f172a" stroke-width="5"/>' +
+      '<rect x="38" y="28" width="34" height="26" rx="4" fill="#bae6fd" stroke="#0f172a" stroke-width="3"/>' +
+      '<rect x="20" y="54" width="112" height="44" rx="10" fill="#16a34a" stroke="#0f172a" stroke-width="5"/>' +
+      '<rect x="112" y="26" width="10" height="30" rx="3" fill="#334155" stroke="#0f172a" stroke-width="3"/>' +
+      '<circle cx="46" cy="98" r="32" fill="#1e293b" stroke="#0f172a" stroke-width="5"/>' +
+      '<circle cx="46" cy="98" r="14" fill="#f59e0b" stroke="#0f172a" stroke-width="3"/>' +
+      '<circle cx="112" cy="106" r="22" fill="#1e293b" stroke="#0f172a" stroke-width="5"/>' +
+      '<circle cx="112" cy="106" r="9" fill="#f59e0b" stroke="#0f172a" stroke-width="3"/>' +
+      '</svg>' +
+      '</div>' +
+      '<div class="thc-field-grid">' +
+      cropsHtml +
+      '</div>' +
+      '</div>';
 
     const repeatBtn = this.container.querySelector('#thc-repeat-btn');
     repeatBtn.addEventListener('click', () => {
@@ -285,9 +305,13 @@ export default class TractorHarvestCountGame {
     this._schedule(() => this.speech.speak(promptText), 200);
 
     const wagonDropEl = this.container.querySelector('#thc-wagon-drop');
-    const loadedTrayEl = this.container.querySelector('#thc-loaded-tray');
     const badgeEl = this.container.querySelector('#thc-counter-badge');
     const rigEl = this.container.querySelector('#thc-rig');
+
+    // Fill order inside the 5-bottom / 4-top pyramid so small counts also stay centered in the cart:
+    // Bottom 5 slots (0..4): fill center-out [2, 1, 3, 0, 4] or left-to-right [0, 1, 2, 3, 4]
+    // Top 4 valley slots (5..8): fill left-to-right [5, 6, 7, 8] directly above the gaps between 0-1, 1-2, 2-3, 3-4!
+    const SLOT_FILL_ORDER = [0, 1, 2, 3, 4, 5, 6, 7, 8];
 
     const cropEls = this.container.querySelectorAll('.thc-crop-item');
     cropEls.forEach((cropEl) => {
@@ -297,7 +321,7 @@ export default class TractorHarvestCountGame {
           this.audio.playNote(440, 0.1);
         },
         onMove: (_x, _y, dx, dy) => {
-          cropEl.style.transform = `translate(${dx}px, ${dy}px) scale(1.15)`;
+          cropEl.style.transform = 'translate(' + dx + 'px, ' + dy + 'px) scale(1.15)';
         },
         onEnd: (clientX, clientY) => {
           cropEl.classList.remove('dragging');
@@ -306,14 +330,15 @@ export default class TractorHarvestCountGame {
             this.currentCount < this.targetCount
           ) {
             cropEl.classList.add('loaded');
+            const targetSlotIdx = SLOT_FILL_ORDER[this.currentCount];
             this.currentCount += 1;
 
-            const mini = document.createElement('div');
-            mini.className = 'mini-crop';
-            mini.innerHTML = this.currentCrop.svg;
-            loadedTrayEl.appendChild(mini);
+            const slotEl = this.container.querySelector('#thc-slot-' + targetSlotIdx);
+            if (slotEl) {
+              slotEl.innerHTML = this.currentCrop.svg;
+            }
 
-            badgeEl.textContent = `${this.currentCount} / ${this.targetCount}`;
+            badgeEl.textContent = this.currentCount + ' / ' + this.targetCount;
 
             const noteHz =
               PENTATONIC_SCALE[Math.min(this.currentCount, PENTATONIC_SCALE.length - 1)];
@@ -335,18 +360,35 @@ export default class TractorHarvestCountGame {
   }
 
   _completeRound(rigEl, cropLabel) {
-    this._schedule(() => {
-      this.audio.playSuccessChord();
-      this.speech.speak(
-        `${NUMBER_WORDS[this.targetCount]} ${cropLabel}! Off goes the tractor!`
-      );
-      if (rigEl) rigEl.classList.add('drive-away');
-    }, 650);
+    // 10% probability surprise event: tractor puffs smoke, honks, and drives slowly off-screen (3.4s)!
+    const isDriveOffEvent = Math.random() < 0.10;
 
     this._schedule(() => {
-      this.seqIndex += 1;
-      this.startRound();
-    }, 2300);
+      this.audio.playSuccessChord();
+      if (isDriveOffEvent) {
+        setTimeout(() => this.audio.playNote(349.23, 0.24), 250);
+        setTimeout(() => this.audio.playNote(440.0, 0.38), 520);
+        this.speech.speak(
+          NUMBER_WORDS[this.targetCount] +
+            ' ' +
+            cropLabel +
+            '! Beep beep! Off to the silo goes the tractor!'
+        );
+        if (rigEl) rigEl.classList.add('drive-away');
+      } else {
+        this.speech.speak(
+          NUMBER_WORDS[this.targetCount] + ' ' + cropLabel + '! Great counting!'
+        );
+        if (rigEl) rigEl.classList.add('chug-bounce');
+      }
+    }, 650);
+
+    this._schedule(
+      () => {
+        this.startRound();
+      },
+      isDriveOffEvent ? 4300 : 2200
+    );
   }
 
   unmount() {

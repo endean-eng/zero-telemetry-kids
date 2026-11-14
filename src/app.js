@@ -1,15 +1,13 @@
 /**
  * @file src/app.js
- * @description Core PWA launcher, Web Audio pentatonic synthesizer, clamped SpeechSynthesis wrapper,
- *              Dual-Corner 2.0s Parent Gate, and palm-rest multi-touch PointerManager.
+ * @description Core PWA launcher featuring a 2-Card Roguelike Featured Draft + Full Library Drawer,
+ *              Web Audio pentatonic synthesizer, clamped SpeechSynthesis wrapper,
+ *              Dual-Corner / PC-Mouse / Escape-Key 2.0s Parent Gate, and palm-rest multi-touch PointerManager.
  */
 
 import { initInstallHelper } from './install-helper.js';
 import { GAME_REGISTRY } from './registry.js';
 
-/**
- * Zero-MP3 Web Audio API Synthesizer for tactile preschool reward chimes and gentle thuds.
- */
 export class AudioSynth {
   constructor() {
     this.ctx = null;
@@ -28,11 +26,6 @@ export class AudioSynth {
     }
   }
 
-  /**
-   * Plays a warm single note (e.g., on piece pickup or tap).
-   * @param {number} freqHz - Frequency in Hz (default C5 = 523.25 Hz).
-   * @param {number} durationSec - Duration in seconds.
-   */
   playNote(freqHz = 523.25, durationSec = 0.18) {
     if (this.muted) return;
     this._ensureContext();
@@ -56,20 +49,14 @@ export class AudioSynth {
     osc.stop(now + durationSec);
   }
 
-  /**
-   * Plays a cheerful C-major pentatonic ascending marimba arpeggio on successful match/round completion.
-   */
   playSuccessChord() {
     if (this.muted) return;
-    const pentatonicHz = [523.25, 587.33, 659.25, 783.99, 1046.5]; // C5, D5, E5, G5, C6
+    const pentatonicHz = [523.25, 587.33, 659.25, 783.99, 1046.5];
     pentatonicHz.forEach((freq, idx) => {
       setTimeout(() => this.playNote(freq, 0.28), idx * 75);
     });
   }
 
-  /**
-   * Plays a soft, non-punitive low-frequency wooden bounce sound when a piece returns to tray.
-   */
   playGentleThud() {
     if (this.muted) return;
     this._ensureContext();
@@ -94,9 +81,6 @@ export class AudioSynth {
   }
 }
 
-/**
- * Offline Web Speech API wrapper with playback rate clamped to [0.85, 0.90] for 3-to-4-year-olds.
- */
 export class VoicePrompt {
   constructor() {
     this.synth = 'speechSynthesis' in window ? window.speechSynthesis : null;
@@ -104,11 +88,6 @@ export class VoicePrompt {
     this.pitch = 1.05;
   }
 
-  /**
-   * Speaks a short, deterministic prompt aloud, cancelling any overlapping speech.
-   * @param {string} text - Prompt string to speak.
-   * @param {number} customRate - Optional rate clamped strictly to [0.85, 0.90].
-   */
   speak(text, customRate = 0.88) {
     if (!this.synth || !text) return;
     try {
@@ -118,9 +97,7 @@ export class VoicePrompt {
       utterance.pitch = this.pitch;
       utterance.lang = 'en-US';
       this.synth.speak(utterance);
-    } catch (_) {
-      // Fallback silently if browser restricts un-gestured speech
-    }
+    } catch (_) {}
   }
 
   cancel() {
@@ -130,25 +107,14 @@ export class VoicePrompt {
   }
 }
 
-/**
- * Multi-touch palm-rest debouncer and +24px magnetic snap helper for 3-year-old motor ergonomics.
- */
 export class PointerManager {
-  /**
-   * Attaches palm-rest-safe drag-and-drop behavior to an element.
-   * Tracks only the initial active `pointerId` so a resting thumb or palm never aborts the drag.
-   *
-   * @param {HTMLElement|SVGElement} el - Draggable target element.
-   * @param {Object} handlers - { onStart(x, y, e), onMove(x, y, dx, dy, e), onEnd(x, y, e) }
-   * @returns {Function} Cleanup function to detach listeners.
-   */
   static attachDrag(el, { onStart, onMove, onEnd }) {
     let activePointerId = null;
     let startX = 0;
     let startY = 0;
 
     const handlePointerDown = (e) => {
-      if (activePointerId !== null) return; // Ignore secondary palm/thumb touches
+      if (activePointerId !== null) return;
       activePointerId = e.pointerId;
       startX = e.clientX;
       startY = e.clientY;
@@ -187,14 +153,6 @@ export class PointerManager {
     };
   }
 
-  /**
-   * Evaluates whether a dragged coordinate is within a drop target's radius + 24px magnetic snap tolerance.
-   * @param {number} x - Dragged item center X (clientX).
-   * @param {number} y - Dragged item center Y (clientY).
-   * @param {HTMLElement|SVGElement} targetEl - Receptacle DOM/SVG element.
-   * @param {number} snapBonusPx - Extra magnetic tolerance in CSS pixels (default 24px).
-   * @returns {boolean}
-   */
   static isWithinSnapRadius(x, y, targetEl, snapBonusPx = 24) {
     const rect = targetEl.getBoundingClientRect();
     const centerX = rect.left + rect.width / 2;
@@ -205,9 +163,6 @@ export class PointerManager {
   }
 }
 
-/**
- * Simultaneous Dual-Corner Hold Detector (2000ms) to prevent accidental toddler exits.
- */
 class ParentGate {
   constructor(leftEl, rightEl, progLeftEl, progRightEl, hintEl, onUnlock) {
     this.leftEl = leftEl;
@@ -219,6 +174,9 @@ class ParentGate {
 
     this.leftHeld = false;
     this.rightHeld = false;
+    this.mouseSingleCornerHold = false;
+    this.escHeld = false;
+
     this.holdStartMs = 0;
     this.rafId = null;
     this.holdDurationMs = 2000;
@@ -226,29 +184,70 @@ class ParentGate {
 
     this._bindCorner(this.leftEl, 'left');
     this._bindCorner(this.rightEl, 'right');
+    this._bindKeyboard();
   }
 
   _bindCorner(el, side) {
-    const setHeld = (state) => {
+    const setHeld = (state, isMouse = false) => {
       if (side === 'left') this.leftHeld = state;
       if (side === 'right') this.rightHeld = state;
+      if (isMouse) {
+        this.mouseSingleCornerHold = state;
+      } else if (!this.leftHeld && !this.rightHeld) {
+        this.mouseSingleCornerHold = false;
+      }
       el.classList.toggle('holding', state);
       this._evaluateHoldState();
     };
 
     el.addEventListener('pointerdown', (e) => {
       e.preventDefault();
-      setHeld(true);
+      const isMouse = e.pointerType === 'mouse';
+      setHeld(true, isMouse);
     });
-    el.addEventListener('pointerup', () => setHeld(false));
-    el.addEventListener('pointercancel', () => setHeld(false));
-    el.addEventListener('pointerleave', () => setHeld(false));
+    el.addEventListener('pointerup', () => setHeld(false, false));
+    el.addEventListener('pointercancel', () => setHeld(false, false));
+    el.addEventListener('pointerleave', () => setHeld(false, false));
+  }
+
+  _bindKeyboard() {
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        if (e.shiftKey) {
+          this.onUnlock();
+          return;
+        }
+        if (!this.escHeld) {
+          this.escHeld = true;
+          this.leftEl.classList.add('holding');
+          this.rightEl.classList.add('holding');
+          this._evaluateHoldState();
+        }
+      }
+    });
+
+    window.addEventListener('keyup', (e) => {
+      if (e.key === 'Escape' && this.escHeld) {
+        this.escHeld = false;
+        this.leftEl.classList.remove('holding');
+        this.rightEl.classList.remove('holding');
+        this._evaluateHoldState();
+      }
+    });
   }
 
   _evaluateHoldState() {
-    if (this.leftHeld && this.rightHeld) {
+    const isUnlockHoldActive =
+      (this.leftHeld && this.rightHeld) ||
+      this.mouseSingleCornerHold ||
+      this.escHeld;
+
+    if (isUnlockHoldActive) {
       this.holdStartMs = performance.now();
-      this.hintEl.classList.remove('visible');
+      this.hintEl.textContent = this.escHeld
+        ? 'Keep holding ESC to exit to menu...'
+        : 'Keep holding for 2 seconds to exit...';
+      this.hintEl.classList.add('visible');
       this._tick();
     } else {
       if (this.rafId) {
@@ -257,6 +256,8 @@ class ParentGate {
       }
       this._setProgress(0);
       if (this.leftHeld || this.rightHeld) {
+        this.hintEl.textContent =
+          'Touch: Hold BOTH top corners for 2s (PC: Hold corner with mouse or hold ESC)';
         this.hintEl.classList.add('visible');
       } else {
         this.hintEl.classList.remove('visible');
@@ -265,15 +266,19 @@ class ParentGate {
   }
 
   _tick() {
+    const targetMs = this.escHeld ? 1200 : this.holdDurationMs;
     const elapsed = performance.now() - this.holdStartMs;
-    const ratio = Math.min(1, elapsed / this.holdDurationMs);
+    const ratio = Math.min(1, elapsed / targetMs);
     this._setProgress(ratio);
 
     if (ratio >= 1) {
       this.leftHeld = false;
       this.rightHeld = false;
+      this.mouseSingleCornerHold = false;
+      this.escHeld = false;
       this.leftEl.classList.remove('holding');
       this.rightEl.classList.remove('holding');
+      this.hintEl.classList.remove('visible');
       this._setProgress(0);
       this.onUnlock();
       return;
@@ -288,9 +293,15 @@ class ParentGate {
   }
 }
 
-/**
- * Main Application Shell Controller.
- */
+function shuffleArray(arr) {
+  const copy = [...arr];
+  for (let i = copy.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [copy[i], copy[j]] = [copy[j], copy[i]];
+  }
+  return copy;
+}
+
 class KidsCommonsApp {
   constructor() {
     this.audio = new AudioSynth();
@@ -299,8 +310,13 @@ class KidsCommonsApp {
 
     this.launcherView = document.getElementById('launcher-view');
     this.stageView = document.getElementById('stage-view');
+    this.featuredGrid = document.getElementById('featured-grid');
     this.gameGrid = document.getElementById('game-grid');
+    this.rerollBtn = document.getElementById('btn-reroll-featured');
     this.gameMount = document.getElementById('game-mount');
+
+    this.featuredCount = 2;
+    this.lastFeaturedKey = '';
 
     this.parentGate = new ParentGate(
       document.getElementById('gate-left'),
@@ -315,6 +331,13 @@ class KidsCommonsApp {
   init() {
     this._registerServiceWorker();
     initInstallHelper(document.getElementById('install-banner'));
+    if (this.rerollBtn) {
+      this.rerollBtn.addEventListener('click', () => {
+        this.audio.playNote(587.33, 0.14);
+        setTimeout(() => this.audio.playNote(783.99, 0.18), 80);
+        this.renderFeaturedPicks();
+      });
+    }
     this.renderLauncher();
   }
 
@@ -326,17 +349,58 @@ class KidsCommonsApp {
     }
   }
 
+  /**
+   * Deals 2 random featured games into the prominent top Hero Draft section.
+   * Ensures clicking "Spin New Picks" always deals a fresh pair combination.
+   */
+  renderFeaturedPicks() {
+    if (!this.featuredGrid) return;
+    this.featuredGrid.innerHTML = '';
+
+    const count = Math.min(this.featuredCount, GAME_REGISTRY.length);
+    let picks = shuffleArray(GAME_REGISTRY).slice(0, count);
+    let currentKey = picks.map((p) => p.id).join('|');
+
+    if (GAME_REGISTRY.length > 2 && currentKey === this.lastFeaturedKey) {
+      picks = shuffleArray(GAME_REGISTRY).slice(0, count);
+      currentKey = picks.map((p) => p.id).join('|');
+    }
+    this.lastFeaturedKey = currentKey;
+
+    picks.forEach((entry) => {
+      const card = document.createElement('button');
+      card.className = 'game-card hero-card';
+      card.style.borderColor = entry.accentColor || '#0f172a';
+      card.setAttribute('aria-label', 'Featured Game: ' + entry.title);
+      card.innerHTML =
+        '<div class="game-card-icon">' +
+        entry.iconSvg +
+        '</div>' +
+        '<div class="game-card-title">' +
+        entry.title +
+        '</div>';
+      card.addEventListener('click', () => this.launchGame(entry));
+      this.featuredGrid.appendChild(card);
+    });
+  }
+
   renderLauncher() {
+    this.renderFeaturedPicks();
+
+    if (!this.gameGrid) return;
     this.gameGrid.innerHTML = '';
     GAME_REGISTRY.forEach((entry) => {
       const card = document.createElement('button');
-      card.className = 'game-card';
+      card.className = 'game-card compact-card';
       card.style.borderColor = entry.accentColor || '#cbd5e1';
       card.setAttribute('aria-label', entry.title);
-      card.innerHTML = `
-        <div class="game-card-icon">${entry.iconSvg}</div>
-        <div class="game-card-title">${entry.title}</div>
-      `;
+      card.innerHTML =
+        '<div class="game-card-icon">' +
+        entry.iconSvg +
+        '</div>' +
+        '<div class="game-card-title">' +
+        entry.title +
+        '</div>';
       card.addEventListener('click', () => this.launchGame(entry));
       this.gameGrid.appendChild(card);
     });
@@ -356,12 +420,14 @@ class KidsCommonsApp {
         PointerManager
       });
     } catch (err) {
+      console.error('Failed to load game module:', entry.id, err);
       this.speech.speak('Let us pick another game!');
       this.exitActiveGame();
     }
   }
 
   exitActiveGame() {
+    if (!this.stageView.classList.contains('active')) return;
     this.speech.cancel();
     this.audio.playNote(392.0, 0.15);
     if (this.activeInstance && typeof this.activeInstance.unmount === 'function') {
@@ -373,6 +439,8 @@ class KidsCommonsApp {
     this.gameMount.innerHTML = '';
     this.stageView.classList.remove('active');
     this.launcherView.style.display = 'flex';
+    // Deal a fresh 2-game Roguelike Draft whenever returning to the home screen
+    this.renderFeaturedPicks();
   }
 }
 
