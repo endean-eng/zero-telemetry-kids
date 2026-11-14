@@ -11,7 +11,10 @@ const PRECACHE_ASSETS = [
   './manifest.json',
   './src/app.js',
   './src/install-helper.js',
-  './src/registry.js'
+  './src/registry.js',
+  './src/games/barn-shape-sort.js',
+  './src/games/tractor-harvest-count.js',
+  './src/games/phonics-bubble-pop.js'
 ];
 
 self.addEventListener('install', (event) => {
