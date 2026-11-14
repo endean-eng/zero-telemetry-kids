@@ -1,0 +1,25 @@
+{
+  "name": "Zero-Telemetry Kids — Preschool Commons",
+  "short_name": "Kids Commons",
+  "description": "100% free, offline, zero-ad, zero-telemetry educational games built for 3-to-4-year-olds.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "landscape",
+  "background_color": "#f0f9ff",
+  "theme_color": "#1e293b",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' rx='36' fill='%231e293b'/%3E%3Cpath d='M96 32 L32 84 V160 H160 V84 Z' fill='%23dc2626' stroke='%23ffffff' stroke-width='8' stroke-linejoin='round'/%3E%3Crect x='72' y='104' width='48' height='56' fill='%23ffffff'/%3E%3C/svg%3E",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='96' fill='%231e293b'/%3E%3Cpath d='M256 84 L84 224 V428 H428 V224 Z' fill='%23dc2626' stroke='%23ffffff' stroke-width='18' stroke-linejoin='round'/%3E%3Crect x='192' y='276' width='128' height='152' fill='%23ffffff'/%3E%3C/svg%3E",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
