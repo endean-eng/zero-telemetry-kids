@@ -1,0 +1,38 @@
+name: Sync Repo to Gemini Notebook (Google Drive)
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  workflow_dispatch:
+
+# Least-privilege token scope: read-only access to repository contents
+permissions:
+  contents: read
+
+concurrency:
+  group: notebook-drive-sync-${{ github.repository }}
+  cancel-in-progress: true
+
+jobs:
+  sync-to-drive:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout Target Repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          fetch-depth: 1
+
+      - name: Shard & Sync to Google Drive via Composite Action
+        uses: endean-eng/gemini-notebook-repo-sync@c6ec729e8f57579d317c6ad6f17121fea68b6993 # v1.0.1
+        with:
+          gas-webhook-url: ${{ secrets.GAS_WEBHOOK_URL }}
+          gas-webhook-secret: ${{ secrets.GAS_WEBHOOK_SECRET }}
+          # Optional inputs:
+          # repo-name: "custom-folder-name"
+          # max-shard-chars: "450000"
+          # max-single-file-bytes: "350000"
+          # dry-run: "false"
