@@ -1,12 +1,15 @@
 /**
  * @file src/app.js
- * @description Core PWA launcher featuring a 2-Card Roguelike Featured Draft + Full Library Drawer,
- *              Web Audio pentatonic synthesizer, clamped SpeechSynthesis wrapper,
- *              Dual-Corner / PC-Mouse / Escape-Key 2.0s Parent Gate, and palm-rest multi-touch PointerManager.
+ * @description Core PWA launcher with persistent localStorage Favorites ("ztk_favorites"),
+ *              "1 Favorite + 1 Discovery" Hero Draft, Web Audio pentatonic synthesizer,
+ *              clamped SpeechSynthesis wrapper, Dual-Corner / PC-Mouse / Escape-Key Parent Gate,
+ *              and self-healing card layout styles.
  */
 
 import { initInstallHelper } from './install-helper.js';
 import { GAME_REGISTRY } from './registry.js';
+
+const FAVORITES_STORAGE_KEY = 'ztk_favorites';
 
 export class AudioSynth {
   constructor() {
@@ -293,15 +296,6 @@ class ParentGate {
   }
 }
 
-function shuffleArray(arr) {
-  const copy = [...arr];
-  for (let i = copy.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [copy[i], copy[j]] = [copy[j], copy[i]];
-  }
-  return copy;
-}
-
 class KidsCommonsApp {
   constructor() {
     this.audio = new AudioSynth();
@@ -310,13 +304,21 @@ class KidsCommonsApp {
 
     this.launcherView = document.getElementById('launcher-view');
     this.stageView = document.getElementById('stage-view');
-    this.featuredGrid = document.getElementById('featured-grid');
+    // Support both #hero-grid and #hero-cards so any index.html version works!
+    this.heroGrid =
+      document.getElementById('hero-grid') ||
+      document.getElementById('hero-cards');
     this.gameGrid = document.getElementById('game-grid');
-    this.rerollBtn = document.getElementById('btn-reroll-featured');
+    this.totalCountEl = document.getElementById('total-games-count');
+    this.shuffleBtn =
+      document.getElementById('btn-shuffle-hero') ||
+      document.getElementById('shuffle-btn');
     this.gameMount = document.getElementById('game-mount');
 
-    this.featuredCount = 2;
-    this.lastFeaturedKey = '';
+    this.favoriteIds = this._loadFavorites();
+    this.currentHeroPair = [];
+
+    this._injectCardStyles();
 
     this.parentGate = new ParentGate(
       document.getElementById('gate-left'),
@@ -328,16 +330,70 @@ class KidsCommonsApp {
     );
   }
 
+  /**
+   * Ensures favorite hearts, badges, and compact cards always have proper CSS
+   * even if an older index.html stylesheet is cached or active.
+   */
+  _injectCardStyles() {
+    if (document.getElementById('ztk-dynamic-card-styles')) return;
+    const style = document.createElement('style');
+    style.id = 'ztk-dynamic-card-styles';
+    style.textContent =
+      '#hero-grid, #hero-cards {' +
+      '  display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));' +
+      '  gap: 20px; width: 100%;' +
+      '}' +
+      '.game-card {' +
+      '  position: relative !important; display: flex !important;' +
+      '  flex-direction: column !important; align-items: center !important;' +
+      '  justify-content: center !important; overflow: hidden;' +
+      '}' +
+      '.game-card.hero-card {' +
+      '  min-height: 215px !important; padding: 28px 18px 18px 18px !important;' +
+      '}' +
+      '.game-card.compact-card {' +
+      '  min-height: 165px !important; padding: 26px 14px 14px 14px !important; gap: 6px !important;' +
+      '}' +
+      '.fav-toggle-btn {' +
+      '  position: absolute; top: 10px; right: 10px; width: 42px; height: 42px;' +
+      '  border-radius: 999px; background: #f8fafc; border: 2.5px solid #cbd5e1;' +
+      '  color: #64748b; display: flex; align-items: center; justify-content: center;' +
+      '  font-size: 1.3rem; line-height: 1; cursor: pointer; z-index: 15;' +
+      '  transition: transform 0.15s ease, background-color 0.15s ease, border-color 0.15s ease;' +
+      '}' +
+      '.fav-toggle-btn.is-fav {' +
+      '  background: #fee2e2; border-color: #dc2626; color: #dc2626;' +
+      '}' +
+      '.fav-toggle-btn:active { transform: scale(0.88); }' +
+      '.slot-badge {' +
+      '  position: absolute; top: 12px; left: 12px; padding: 4px 10px;' +
+      '  border-radius: 999px; font-size: 0.76rem; font-weight: 800;' +
+      '  background: #f1f5f9; color: #334155; border: 2px solid #cbd5e1; z-index: 12;' +
+      '}' +
+      '.slot-badge.fav-slot {' +
+      '  background: #fef3c7; color: #92400e; border-color: #f59e0b;' +
+      '}' +
+      '.game-card-category {' +
+      '  font-size: 0.75rem; font-weight: 700; color: #475569;' +
+      '  background: #f1f5f9; padding: 3px 10px; border-radius: 999px;' +
+      '  text-align: center; white-space: nowrap;' +
+      '}';
+    document.head.appendChild(style);
+  }
+
   init() {
     this._registerServiceWorker();
     initInstallHelper(document.getElementById('install-banner'));
-    if (this.rerollBtn) {
-      this.rerollBtn.addEventListener('click', () => {
-        this.audio.playNote(587.33, 0.14);
-        setTimeout(() => this.audio.playNote(783.99, 0.18), 80);
-        this.renderFeaturedPicks();
+
+    if (this.shuffleBtn) {
+      this.shuffleBtn.addEventListener('click', () => {
+        this.audio.playNote(659.25, 0.14);
+        this.currentHeroPair = this._pickHeroPair();
+        this.renderLauncher();
       });
     }
+
+    this.currentHeroPair = this._pickHeroPair();
     this.renderLauncher();
   }
 
@@ -351,61 +407,157 @@ class KidsCommonsApp {
     }
   }
 
-  /**
-   * Deals 2 random featured games into the prominent top Hero Draft section.
-   * Ensures clicking "Spin New Picks" always deals a fresh pair combination.
-   */
-  renderFeaturedPicks() {
-    if (!this.featuredGrid) return;
-    this.featuredGrid.innerHTML = '';
-
-    const count = Math.min(this.featuredCount, GAME_REGISTRY.length);
-    let picks = shuffleArray(GAME_REGISTRY).slice(0, count);
-    let currentKey = picks.map((p) => p.id).join('|');
-
-    if (GAME_REGISTRY.length > 2 && currentKey === this.lastFeaturedKey) {
-      picks = shuffleArray(GAME_REGISTRY).slice(0, count);
-      currentKey = picks.map((p) => p.id).join('|');
+  _loadFavorites() {
+    try {
+      const raw = window.localStorage.getItem(FAVORITES_STORAGE_KEY);
+      if (!raw) return [];
+      const parsed = JSON.parse(raw);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch (_) {
+      return [];
     }
-    this.lastFeaturedKey = currentKey;
+  }
 
-    picks.forEach((entry) => {
-      const card = document.createElement('button');
-      card.className = 'game-card hero-card';
-      card.style.borderColor = entry.accentColor || '#0f172a';
-      card.setAttribute('aria-label', 'Featured Game: ' + entry.title);
-      card.innerHTML =
-        '<div class="game-card-icon">' +
-        entry.iconSvg +
-        '</div>' +
-        '<div class="game-card-title">' +
-        entry.title +
-        '</div>';
-      card.addEventListener('click', () => this.launchGame(entry));
-      this.featuredGrid.appendChild(card);
+  _saveFavorites() {
+    try {
+      window.localStorage.setItem(
+        FAVORITES_STORAGE_KEY,
+        JSON.stringify(this.favoriteIds)
+      );
+    } catch (_) {}
+  }
+
+  toggleFavorite(gameId) {
+    const idx = this.favoriteIds.indexOf(gameId);
+    if (idx >= 0) {
+      this.favoriteIds.splice(idx, 1);
+      this.audio.playNote(392.0, 0.14);
+    } else {
+      this.favoriteIds.push(gameId);
+      this.audio.playNote(783.99, 0.18);
+    }
+    this._saveFavorites();
+    this.currentHeroPair = this._pickHeroPair();
+    this.renderLauncher();
+  }
+
+  _shuffleArray(arr) {
+    const copy = arr.slice();
+    for (let i = copy.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      const temp = copy[i];
+      copy[i] = copy[j];
+      copy[j] = temp;
+    }
+    return copy;
+  }
+
+  _pickHeroPair() {
+    if (GAME_REGISTRY.length <= 2) {
+      return GAME_REGISTRY.slice();
+    }
+
+    const favPool = GAME_REGISTRY.filter(
+      (g) => this.favoriteIds.indexOf(g.id) !== -1
+    );
+    const nonFavPool = GAME_REGISTRY.filter(
+      (g) => this.favoriteIds.indexOf(g.id) === -1
+    );
+
+    let firstPick = null;
+    if (favPool.length > 0) {
+      const shuffledFavs = this._shuffleArray(favPool);
+      firstPick = shuffledFavs[0];
+    } else {
+      const shuffledAll = this._shuffleArray(GAME_REGISTRY);
+      firstPick = shuffledAll[0];
+    }
+
+    let secondCandidates = nonFavPool.filter((g) => g.id !== firstPick.id);
+    if (secondCandidates.length === 0) {
+      secondCandidates = GAME_REGISTRY.filter((g) => g.id !== firstPick.id);
+    }
+
+    const secondPick = this._shuffleArray(secondCandidates)[0];
+    return secondPick ? [firstPick, secondPick] : [firstPick];
+  }
+
+  _createCardElement(entry, isHero, slotIndex) {
+    const isFav = this.favoriteIds.indexOf(entry.id) !== -1;
+    const card = document.createElement('div');
+    card.className = isHero ? 'game-card hero-card' : 'game-card compact-card';
+    card.style.borderColor = entry.accentColor || '#cbd5e1';
+    card.setAttribute('role', 'button');
+    card.setAttribute('tabindex', '0');
+    card.setAttribute('aria-label', entry.title);
+
+    let badgeHtml = '';
+    if (isHero) {
+      if (slotIndex === 0 && isFav) {
+        badgeHtml = '<span class="slot-badge fav-slot">\u2665 Favorite Pick</span>';
+      } else {
+        badgeHtml = '<span class="slot-badge">\u2605 Discovery Pick</span>';
+      }
+    }
+
+    const categoryLabel = entry.category || 'Montessori Sensorial';
+    const favIcon = isFav ? '\u2665' : '\u2661';
+    const favClass = isFav ? 'fav-toggle-btn is-fav' : 'fav-toggle-btn';
+
+    card.innerHTML =
+      badgeHtml +
+      '<button type="button" class="' +
+      favClass +
+      '" aria-label="Toggle Favorite" title="Toggle Favorite">' +
+      favIcon +
+      '</button>' +
+      '<div class="game-card-icon">' +
+      entry.iconSvg +
+      '</div>' +
+      '<div class="game-card-title">' +
+      entry.title +
+      '</div>' +
+      '<div class="game-card-category">' +
+      categoryLabel +
+      '</div>';
+
+    const favBtn = card.querySelector('.fav-toggle-btn');
+    if (favBtn) {
+      favBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        this.toggleFavorite(entry.id);
+      });
+    }
+
+    card.addEventListener('click', (e) => {
+      if (e.target && e.target.closest && e.target.closest('.fav-toggle-btn')) {
+        return;
+      }
+      this.launchGame(entry);
     });
+
+    return card;
   }
 
   renderLauncher() {
-    this.renderFeaturedPicks();
+    if (this.totalCountEl) {
+      this.totalCountEl.textContent = String(GAME_REGISTRY.length);
+    }
 
-    if (!this.gameGrid) return;
-    this.gameGrid.innerHTML = '';
-    GAME_REGISTRY.forEach((entry) => {
-      const card = document.createElement('button');
-      card.className = 'game-card compact-card';
-      card.style.borderColor = entry.accentColor || '#cbd5e1';
-      card.setAttribute('aria-label', entry.title);
-      card.innerHTML =
-        '<div class="game-card-icon">' +
-        entry.iconSvg +
-        '</div>' +
-        '<div class="game-card-title">' +
-        entry.title +
-        '</div>';
-      card.addEventListener('click', () => this.launchGame(entry));
-      this.gameGrid.appendChild(card);
-    });
+    if (this.heroGrid) {
+      this.heroGrid.innerHTML = '';
+      this.currentHeroPair.forEach((entry, idx) => {
+        this.heroGrid.appendChild(this._createCardElement(entry, true, idx));
+      });
+    }
+
+    if (this.gameGrid) {
+      this.gameGrid.innerHTML = '';
+      GAME_REGISTRY.forEach((entry) => {
+        this.gameGrid.appendChild(this._createCardElement(entry, false, -1));
+      });
+    }
   }
 
   async launchGame(entry) {
@@ -416,13 +568,25 @@ class KidsCommonsApp {
 
     try {
       const module = await entry.loader();
-      const GameClass = module.default;
+      const GameClass =
+        module.default ||
+        module.PastureFenceHopperGame ||
+        Object.values(module).find((exp) => typeof exp === 'function');
+
+      if (typeof GameClass !== 'function') {
+        throw new Error(
+          'Module ./src/games/' +
+            entry.id +
+            '.js loaded as an empty object! Check that the file is saved (Ctrl+S) in VS Code.'
+        );
+      }
+
       this.activeInstance = new GameClass();
       this.activeInstance.mount(this.gameMount, this.audio, this.speech, {
-        PointerManager
+        PointerManager: PointerManager
       });
     } catch (err) {
-      console.error('Failed to load game module:', entry.id, err);
+      console.error('Failed to load game module [' + entry.id + ']:', err);
       this.speech.speak('Let us pick another game!');
       this.exitActiveGame();
     }
@@ -441,8 +605,6 @@ class KidsCommonsApp {
     this.gameMount.innerHTML = '';
     this.stageView.classList.remove('active');
     this.launcherView.style.display = 'flex';
-    // Deal a fresh 2-game Roguelike Draft whenever returning to the home screen
-    this.renderFeaturedPicks();
   }
 }
 
