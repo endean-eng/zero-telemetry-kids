@@ -160,8 +160,6 @@ export default class SprinklerSproutDefenseGame {
     this.wateredCount = 0;
     this.waveCelebrating = false;
 
-    // Row 0 (top) and Row 1 (bottom) move in opposite horizontal directions at slightly different speeds
-    // so the bottom row never stays aligned underneath the top row!
     this.rowDirs = [1, -1];
     this.rowSpeeds = this.level === 1 ? [52, 64] : [60, 78];
 
@@ -169,12 +167,11 @@ export default class SprinklerSproutDefenseGame {
     if (!targetsLayer) return;
 
     if (this.level === 1) {
-      // Stage 1: 2 staggered rows of 4 thirsty sprout clouds (8 total)
       this.targetGoal = 8;
       const cols = 4;
       const rows = 2;
       const spacingX = 185;
-      const startY = 136;
+      const startY = 148;
       const spacingY = 98;
 
       let idCounter = 0;
@@ -203,12 +200,10 @@ export default class SprinklerSproutDefenseGame {
         }
       }
     } else {
-      // Stage 2: Selective Color Filtering (4 target color clouds + 2 other color clouds + 2 friendly bees)
       this.targetColorObj = STAGE2_COLORS[(this.waveNumber - 1) % STAGE2_COLORS.length];
       const otherColors = STAGE2_COLORS.filter((c) => c.id !== this.targetColorObj.id);
       this.targetGoal = 4;
 
-      // Guarantee 2 target clouds in the top row and 2 target clouds in the bottom row
       const topRowSpecs = [
         { type: 'cloud', colorObj: this.targetColorObj, isTarget: true },
         { type: 'cloud', colorObj: this.targetColorObj, isTarget: true },
@@ -235,12 +230,11 @@ export default class SprinklerSproutDefenseGame {
 
       const allRows = [topRowSpecs, bottomRowSpecs];
       const spacingX = 185;
-      const startY = 136;
+      const startY = 148;
       const spacingY = 104;
 
       let idCounter = 0;
       for (let r = 0; r < allRows.length; r++) {
-        // Offset top and bottom row starting X by 70px so vertical lanes are open immediately
         const rowStartX = r === 0 ? 150 : 220;
         const rowSpecs = allRows[r];
         for (let c = 0; c < rowSpecs.length; c++) {
@@ -274,7 +268,6 @@ export default class SprinklerSproutDefenseGame {
       }
     }
 
-    // Repaint the Sprinkler Cart so its tank matches the active target color in Stage 2!
     const cartGroup = this.container.querySelector('#ssd-cart-group');
     if (cartGroup) {
       cartGroup.innerHTML = this._buildSprinklerCartSvg(this.cartWidth, this.cartHeight);
@@ -297,7 +290,6 @@ export default class SprinklerSproutDefenseGame {
 
   _buildThirstyCloudSvg() {
     return (
-      /* Fluffy Thirsty Cloud with Little Green Sprout on Top */
       '<path d="M0 -24 Q-12 -42 -2 -44 Q4 -34 0 -24" fill="#22c55e" stroke="#0f172a" stroke-width="3"/>' +
       '<path d="M0 -24 Q12 -42 2 -44 Q-4 -34 0 -24" fill="#16a34a" stroke="#0f172a" stroke-width="3"/>' +
       '<circle cx="-22" cy="4" r="20" fill="#cbd5e1" stroke="#0f172a" stroke-width="4"/>' +
@@ -305,7 +297,6 @@ export default class SprinklerSproutDefenseGame {
       '<circle cx="0" cy="-8" r="24" fill="#e2e8f0" stroke="#0f172a" stroke-width="4"/>' +
       '<rect x="-24" y="4" width="48" height="20" rx="8" fill="#e2e8f0"/>' +
       '<line x1="-22" y1="24" x2="22" y2="24" stroke="#0f172a" stroke-width="4" stroke-linecap="round"/>' +
-      /* Cute Waiting Eyes & Smile */
       '<circle cx="-9" cy="0" r="3.5" fill="#0f172a"/>' +
       '<circle cx="9" cy="0" r="3.5" fill="#0f172a"/>' +
       '<path d="M-6 9 Q0 14 6 9" fill="none" stroke="#0f172a" stroke-width="3" stroke-linecap="round"/>'
@@ -314,7 +305,6 @@ export default class SprinklerSproutDefenseGame {
 
   _buildColoredBudCloudSvg(colorObj) {
     return (
-      /* Colored Flower Bud Crown on Cloud */
       '<circle cx="-12" cy="-28" r="11" fill="' +
       colorObj.hex +
       '" stroke="#0f172a" stroke-width="3.5"/>' +
@@ -325,7 +315,6 @@ export default class SprinklerSproutDefenseGame {
       colorObj.hex +
       '" stroke="#0f172a" stroke-width="3.5"/>' +
       '<circle cx="0" cy="-32" r="5" fill="#fef08a"/>' +
-      /* Cloud Base Tinted with Matching Pastel Hue */
       '<circle cx="-22" cy="4" r="20" fill="' +
       colorObj.lightHex +
       '" stroke="#0f172a" stroke-width="4"/>' +
@@ -342,15 +331,12 @@ export default class SprinklerSproutDefenseGame {
   _buildBloomedSunflowerSvg(petalColorHex) {
     const pColor = petalColorHex || '#facc15';
     return (
-      /* Mini Rainbow Arch Behind Bloomed Cloud */
       '<path d="M-34 8 A34 34 0 0 1 34 8" fill="none" stroke="#ef4444" stroke-width="5"/>' +
       '<path d="M-29 8 A29 29 0 0 1 29 8" fill="none" stroke="#facc15" stroke-width="5"/>' +
       '<path d="M-24 8 A24 24 0 0 1 24 8" fill="none" stroke="#22c55e" stroke-width="5"/>' +
-      /* Bright White Happy Cloud */
       '<circle cx="-20" cy="10" r="16" fill="#ffffff" stroke="#0f172a" stroke-width="3.5"/>' +
       '<circle cx="20" cy="10" r="16" fill="#ffffff" stroke="#0f172a" stroke-width="3.5"/>' +
       '<circle cx="0" cy="4" r="18" fill="#ffffff" stroke="#0f172a" stroke-width="3.5"/>' +
-      /* Giant Blooming Flower On Top */
       '<line x1="0" y1="-6" x2="0" y2="-28" stroke="#16a34a" stroke-width="6" stroke-linecap="round"/>' +
       '<circle cx="-14" cy="-32" r="10" fill="' +
       pColor +
@@ -371,10 +357,8 @@ export default class SprinklerSproutDefenseGame {
 
   _buildSleepyBeeSvg() {
     return (
-      /* Wings */
       '<ellipse cx="-10" cy="-18" rx="12" ry="8" transform="rotate(-20 -10 -18)" fill="#e0f2fe" stroke="#0f172a" stroke-width="3"/>' +
       '<ellipse cx="10" cy="-18" rx="12" ry="8" transform="rotate(20 10 -18)" fill="#e0f1fe" stroke="#0f172a" stroke-width="3"/>' +
-      /* Striped Chubby Bee Body */
       '<ellipse cx="0" cy="0" rx="26" ry="18" fill="#facc15" stroke="#0f172a" stroke-width="4"/>' +
       '<path d="M-8 -16 V16 M6 -16 V16" stroke="#0f172a" stroke-width="6"/>' +
       '<circle cx="15" cy="-3" r="3.5" fill="#0f172a"/>' +
@@ -386,7 +370,6 @@ export default class SprinklerSproutDefenseGame {
     const cx = Math.round(w / 2);
     const palette = this._getActiveSprinklerPalette();
     return (
-      /* Color-Matched Nozzle & Tank on Top */
       '<rect x="' +
       (cx - 12) +
       '" y="-16" width="24" height="20" rx="5" fill="' +
@@ -403,7 +386,6 @@ export default class SprinklerSproutDefenseGame {
       ',-4" fill="' +
       palette.lightHex +
       '" stroke="#0f172a" stroke-width="3.5" stroke-linejoin="round"/>' +
-      /* Tank Body Dynamically Colored to Match Target Flower Color in Stage 2! */
       '<rect x="0" y="0" width="' +
       w +
       '" height="' +
@@ -416,13 +398,11 @@ export default class SprinklerSproutDefenseGame {
       '" height="14" rx="7" fill="' +
       palette.lightHex +
       '"/>' +
-      /* Green Tractor-Style Chassis Frame */
       '<rect x="8" y="' +
       (h - 18) +
       '" width="' +
       (w - 16) +
       '" height="12" rx="5" fill="#16a34a" stroke="#0f172a" stroke-width="3.5"/>' +
-      /* Wheels */
       '<circle cx="28" cy="' +
       (h - 2) +
       '" r="14" fill="#1e293b" stroke="#0f172a" stroke-width="4"/>' +
@@ -452,7 +432,7 @@ export default class SprinklerSproutDefenseGame {
       '<style>' +
       '.ssd-root {' +
       '  width: 100%; height: 100%; position: relative; overflow: hidden;' +
-      '  touch-action: none; user-select: none; background: #e0f2fe;' +
+      '  touch-action: none; user-select: none; background: #22c55e;' +
       '}' +
       '.ssd-top-bar {' +
       '  position: relative; z-index: 40; display: flex; align-items: center;' +
@@ -467,8 +447,8 @@ export default class SprinklerSproutDefenseGame {
       '.ssd-btn:active { transform: translateY(3px); box-shadow: 0 2px 0 #0f172a; }' +
       '.ssd-level-btn { background: #fef08a; }' +
       '.ssd-swatch {' +
-      '  display: inline-block; width: 26px; height: 26px; border-radius: 50%;' +
-      '  border: 3px solid #0f172a; vertical-align: middle;' +
+      '  display: inline-block; width: 20px; height: 20px; border-radius: 50%;' +
+      '  border: 2.5px solid #0f172a; vertical-align: middle;' +
       '}' +
       '.ssd-score-pill {' +
       '  min-height: 70px; padding: 6px 22px; border-radius: 999px;' +
@@ -492,31 +472,26 @@ export default class SprinklerSproutDefenseGame {
       '    </button>' +
       '    <div class="ssd-score-pill" id="ssd-score-pill">Bloomed: 0 / 8</div>' +
       '  </div>' +
-      '  <svg class="ssd-world-svg" id="ssd-svg" viewBox="0 0 1000 560" preserveAspectRatio="none">' +
+      '  <svg class="ssd-world-svg" id="ssd-svg" viewBox="0 0 1000 560" preserveAspectRatio="xMidYMid meet">' +
       '    <defs>' +
       '      <linearGradient id="ssd-sky" x1="0" y1="0" x2="0" y2="1">' +
       '        <stop offset="0%" stop-color="#bae6fd" />' +
       '        <stop offset="100%" stop-color="#f0f9ff" />' +
       '      </linearGradient>' +
       '    </defs>' +
-      '    <rect x="0" y="0" width="1000" height="495" fill="url(#ssd-sky)" />' +
-      /* Celebration Rainbow Arch (Hidden until Wave Complete) */
+      /* Wide bleed sky & pasture (-500..1500) prevent side bars while keeping clouds & wheels 1:1 round */
+      '    <rect x="-500" y="-300" width="2000" height="795" fill="url(#ssd-sky)" />' +
       '    <g id="ssd-wave-rainbow" opacity="0" style="transition: opacity 0.45s ease;">' +
       '      <path d="M140 495 A360 320 0 0 1 860 495" fill="none" stroke="#ef4444" stroke-width="18" opacity="0.45"/>' +
       '      <path d="M158 495 A342 302 0 0 1 842 495" fill="none" stroke="#facc15" stroke-width="18" opacity="0.45"/>' +
       '      <path d="M176 495 A324 284 0 0 1 824 495" fill="none" stroke="#22c55e" stroke-width="18" opacity="0.45"/>' +
       '      <path d="M194 495 A306 266 0 0 1 806 495" fill="none" stroke="#3b82f6" stroke-width="18" opacity="0.45"/>' +
       '    </g>' +
-      /* Green Pasture Ground Track */
-      '    <rect x="0" y="495" width="1000" height="65" fill="#22c55e" stroke="#0f172a" stroke-width="5"/>' +
-      '    <line x1="20" y1="518" x2="980" y2="518" stroke="#16a34a" stroke-width="6" stroke-linecap="round"/>' +
-      /* Dynamic Water Droplets Layer */
+      '    <rect x="-500" y="495" width="2000" height="350" fill="#22c55e" stroke="#0f172a" stroke-width="5"/>' +
+      '    <line x1="-460" y1="518" x2="1460" y2="518" stroke="#16a34a" stroke-width="6" stroke-linecap="round"/>' +
       '    <g id="ssd-droplets-layer"></g>' +
-      /* Drifting Sky Clouds / Sprouts Layer */
       '    <g id="ssd-targets-layer"></g>' +
-      /* Splash Particles Layer */
       '    <g id="ssd-particles-layer"></g>' +
-      /* Bottom Draggable Water Sprinkler Cart */
       '    <g id="ssd-cart-group" transform="translate(' +
       this.cartX +
       ', ' +
@@ -556,6 +531,22 @@ export default class SprinklerSproutDefenseGame {
     }
   }
 
+  /**
+   * Maps screen clientX directly into the 1000-unit SVG coordinate space via getScreenCTM()
+   * so pointer tracking stays 1:1 locked under the child's finger on ultra-wide 20:9 phones.
+   */
+  _clientXToWorldX(svgEl, clientX) {
+    if (!svgEl) return 500;
+    try {
+      const ctm = svgEl.getScreenCTM();
+      if (ctm && ctm.a !== 0) {
+        return (clientX - ctm.e) / ctm.a;
+      }
+    } catch (_) {}
+    const rect = svgEl.getBoundingClientRect();
+    return rect.width > 0 ? ((clientX - rect.left) / rect.width) * this.worldWidth : 500;
+  }
+
   _bindInputs() {
     const repeatBtn = this.container.querySelector('#ssd-repeat-btn');
     const levelBtn = this.container.querySelector('#ssd-level-btn');
@@ -593,17 +584,15 @@ export default class SprinklerSproutDefenseGame {
     let activePointerId = null;
 
     const moveCartToClientX = (clientX) => {
-      if (!svgEl) return;
-      const rect = svgEl.getBoundingClientRect();
-      if (rect.width <= 0) return;
-      const worldX = ((clientX - rect.left) / rect.width) * this.worldWidth;
+      const worldX = this._clientXToWorldX(svgEl, clientX);
       const minX = 40;
       const maxX = this.worldWidth - 40 - this.cartWidth;
       this.cartX = Math.max(minX, Math.min(maxX, worldX - this.cartWidth / 2));
     };
 
     const onPointerDown = (e) => {
-      if (e.clientY < 96) return;
+      const topDeadzone = window.innerHeight <= 520 ? 54 : 96;
+      if (e.clientY < topDeadzone) return;
       if (activePointerId !== null) return;
       activePointerId = e.pointerId;
       moveCartToClientX(e.clientX);
@@ -613,9 +602,10 @@ export default class SprinklerSproutDefenseGame {
     };
 
     const onPointerMove = (e) => {
+      const topDeadzone = window.innerHeight <= 520 ? 54 : 96;
       if (e.pointerId === activePointerId) {
         moveCartToClientX(e.clientX);
-      } else if (e.pointerType === 'mouse' && e.clientY >= 96) {
+      } else if (e.pointerType === 'mouse' && e.clientY >= topDeadzone) {
         moveCartToClientX(e.clientX);
         if (e.buttons === 1) {
           this.isSpraying = true;
@@ -681,8 +671,6 @@ export default class SprinklerSproutDefenseGame {
     const palette = this._getActiveSprinklerPalette();
 
     const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-    // Upward-moving droplet: rounded dome head at top (y = -16), tapered tail at bottom (y = +16),
-    // colored to match the active Sprinkler Cart!
     g.innerHTML =
       '<path d="M0 16 C-10 2, -12 -10, 0 -16 C12 -10, 10 2, 0 16 Z" fill="' +
       palette.dropletHex +
@@ -752,7 +740,6 @@ export default class SprinklerSproutDefenseGame {
         this._completeWave();
       }
     } else {
-      // Non-target cloud or sleepy bee in Stage 2: gentle tickle wobble without penalty!
       target.wobbleMs = 360;
       this.audio.playGentleThud();
       this._spawnSplashParticles(target.x, target.y, '#fef08a', 4);
@@ -788,7 +775,6 @@ export default class SprinklerSproutDefenseGame {
       this.nozzlePulse = Math.max(0, this.nozzlePulse - dt * 5);
     }
 
-    // Keyboard movement support
     const keySpeed = 480;
     if (this.keysHeld.left) {
       this.cartX = Math.max(40, this.cartX - keySpeed * dt);
@@ -800,7 +786,6 @@ export default class SprinklerSproutDefenseGame {
       );
     }
 
-    // Auto-spray timer while finger/mouse/spacebar is held
     if (this.isSpraying || this.keysHeld.spray) {
       this.sprayTimerMs -= dt * 1000;
       if (this.sprayTimerMs <= 0) {
@@ -809,7 +794,6 @@ export default class SprinklerSproutDefenseGame {
       }
     }
 
-    // 1. Update Drifting Sky Fleet (Top and Bottom rows move independently so top row is never blocked!)
     const rowHitWall = [false, false];
     for (let i = 0; i < this.targets.length; i++) {
       const t = this.targets[i];
@@ -845,7 +829,6 @@ export default class SprinklerSproutDefenseGame {
       }
     }
 
-    // 2. Update Upward Water Droplets & Check Intersections
     for (let i = this.droplets.length - 1; i >= 0; i--) {
       const d = this.droplets[i];
       d.y += d.vy * dt;
@@ -878,7 +861,6 @@ export default class SprinklerSproutDefenseGame {
       }
     }
 
-    // 3. Render Sprinkler Cart Position
     const cartGroup = this.container.querySelector('#ssd-cart-group');
     if (cartGroup) {
       const recoilY = Math.round(this.nozzlePulse * 4);

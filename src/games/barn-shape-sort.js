@@ -1,7 +1,8 @@
 /**
  * @file src/games/barn-shape-sort.js
  * @description Launch Module 1 (L-01): Shape & Color Barn Sort with Level 1 (Color+Shape)
- *              and Level 2 (Shape-Only / Mismatched Colors — Montessori Isolation of Quality).
+ *              and Level 2 (Shape-Only / Mismatched Colors -- Montessori Isolation of Quality).
+ *              100% pure ASCII with Unicode escapes and zero template literals.
  */
 
 const SHAPES = [
@@ -126,7 +127,7 @@ export default class BarnShapeSortGame {
           '" id="drop-' +
           item.key +
           '">' +
-          '<svg viewBox="0 0 104 104" width="104" height="104">' +
+          '<svg viewBox="0 0 104 104" width="100%" height="100%">' +
           item.shape.renderHole(item.holeStrokeHex) +
           '</svg>' +
           '</div>' +
@@ -145,7 +146,7 @@ export default class BarnShapeSortGame {
           ' ' +
           item.shape.name +
           '">' +
-          '<svg viewBox="0 0 104 104" width="104" height="104">' +
+          '<svg viewBox="0 0 104 104" width="100%" height="100%">' +
           item.shape.renderToken(item.tokenColor.hex) +
           '</svg>' +
           '</div>' +
@@ -155,8 +156,8 @@ export default class BarnShapeSortGame {
 
     const levelBadgeText =
       this.level === 1
-        ? '⭐ Level 1: Color + Shape'
-        : '🌟 Level 2: Shape Only!';
+        ? '\u2B50 Level 1: Color + Shape'
+        : '\uD83C\uDF1F Level 2: Shape Only!';
 
     this.container.innerHTML =
       '<style>' +
@@ -164,7 +165,7 @@ export default class BarnShapeSortGame {
       '  width: 100%; height: 100%; display: flex; flex-direction: column;' +
       '  justify-content: space-between; align-items: center;' +
       '  background: linear-gradient(180deg, #bae6fd 0%, #e0f2fe 62%, #86efac 62%, #4ade80 100%);' +
-      '  padding: 12px 110px 24px 110px; position: relative; overflow: hidden;' +
+      '  padding: 12px 110px 20px 110px; position: relative; overflow: hidden;' +
       '}' +
       '.bss-top-bar { display: flex; align-items: center; justify-content: center; gap: 16px; flex-wrap: wrap; }' +
       '.bss-prompt-btn {' +
@@ -181,33 +182,44 @@ export default class BarnShapeSortGame {
       '}' +
       '.bss-barns-row {' +
       '  display: flex; justify-content: center; align-items: flex-end;' +
-      '  gap: clamp(20px, 5vw, 64px); width: 100%; max-width: 920px;' +
+      '  gap: clamp(16px, 4.5vw, 64px); width: 100%; max-width: 920px;' +
       '}' +
       '.bss-barn-card {' +
-      '  position: relative; width: clamp(160px, 22vw, 210px); height: clamp(170px, 24vw, 220px);' +
+      '  position: relative;' +
+      '  width: clamp(118px, min(22vw, 41vh), 210px);' +
+      '  height: clamp(124px, min(24vw, 43vh), 220px);' +
       '  display: flex; align-items: center; justify-content: center;' +
       '}' +
       '.bss-drop-zone {' +
-      '  position: absolute; bottom: 14px; width: 104px; height: 104px;' +
-      '  display: flex; align-items: center; justify-content: center; border-radius: 16px;' +
+      '  position: absolute; bottom: 7%; width: 50%; height: 48%;' +
+      '  display: flex; align-items: center; justify-content: center; border-radius: 14px;' +
       '}' +
       '.bss-tray-row {' +
-      '  display: flex; justify-content: center; align-items: center; gap: clamp(28px, 6vw, 72px);' +
+      '  display: flex; justify-content: center; align-items: center; gap: clamp(20px, 5vw, 72px);' +
       '  background: rgba(255, 255, 255, 0.88); border: 4px solid #0f172a; border-radius: 28px;' +
-      '  padding: 14px 36px; min-height: 132px; box-shadow: 0 8px 20px rgba(15, 23, 42, 0.12);' +
+      '  padding: 12px 32px; min-height: 124px; box-shadow: 0 8px 20px rgba(15, 23, 42, 0.12);' +
       '}' +
-      '.bss-slot { width: 108px; height: 108px; display: flex; align-items: center; justify-content: center; position: relative; }' +
+      '.bss-slot {' +
+      '  width: clamp(68px, 19vh, 108px); height: clamp(68px, 19vh, 108px);' +
+      '  display: flex; align-items: center; justify-content: center; position: relative;' +
+      '}' +
       '.bss-token {' +
-      '  width: 104px; height: 104px; cursor: grab; touch-action: none; will-change: transform; z-index: 20;' +
+      '  width: clamp(64px, 18vh, 104px); height: clamp(64px, 18vh, 104px);' +
+      '  cursor: grab; touch-action: none; will-change: transform; z-index: 20;' +
       '  transition: transform 0.22s cubic-bezier(0.2, 0.8, 0.2, 1); filter: drop-shadow(0 6px 8px rgba(15, 23, 42, 0.25));' +
       '}' +
+      '.bss-token svg, .bss-drop-zone svg { width: 100%; height: 100%; display: block; }' +
       '.bss-token.dragging { transition: none; z-index: 100; filter: drop-shadow(0 14px 18px rgba(15, 23, 42, 0.35)); }' +
       '.bss-token.locked { pointer-events: none; z-index: 10; }' +
+      '@media (max-height: 520px) {' +
+      '  .bss-stage { padding: 6px 68px 8px 68px; }' +
+      '  .bss-tray-row { min-height: 0; padding: 6px 24px; border-radius: 20px; border-width: 3px; }' +
+      '}' +
       '</style>' +
       '<div class="bss-stage">' +
       '<div class="bss-top-bar">' +
       '<button type="button" class="bss-prompt-btn" id="bss-repeat-btn" aria-label="Repeat Instructions">' +
-      '<span style="font-size:1.7rem;">🔊</span>' +
+      '<span style="font-size:1.5rem;">\uD83D\uDD0A</span>' +
       '<span>Match the Shapes to the Barns!</span>' +
       '</button>' +
       '<button type="button" class="bss-level-btn" id="bss-level-btn">' +

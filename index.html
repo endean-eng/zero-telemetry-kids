@@ -10,6 +10,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="Kids Commons" />
   <title>Zero-Telemetry Kids - Offline Preschool Commons</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2316a34a'/%3E%3Ccircle cx='32' cy='32' r='18' fill='%23facc15' stroke='%230f172a' stroke-width='4'/%3E%3C/svg%3E" />
   <link rel="manifest" href="./manifest.json" />
   <style>
     :root {
@@ -38,6 +39,7 @@
       padding: 0;
       width: 100vw;
       height: 100vh;
+      height: 100dvh;
       overflow: hidden;
       background-color: var(--bg-sky);
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -48,6 +50,7 @@
       position: relative;
       width: 100vw;
       height: 100vh;
+      height: 100dvh;
       display: flex;
       flex-direction: column;
       overflow: hidden;
@@ -174,7 +177,7 @@
 
     #hero-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
       gap: 20px;
       width: 100%;
     }
@@ -321,7 +324,7 @@
 
     #game-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(175px, 1fr));
       gap: 16px;
       width: 100%;
     }
@@ -332,6 +335,7 @@
       position: relative;
       width: 100vw;
       height: 100vh;
+      height: 100dvh;
       overflow: hidden;
     }
 
@@ -346,7 +350,7 @@
       overflow: hidden;
     }
 
-    /* Dual-Corner Parent Gate Zones (96x96px minimum hitbox) */
+    /* Dual-Corner Parent Gate Zones */
     .parent-gate-corner {
       position: fixed;
       top: 0;
@@ -397,58 +401,136 @@
     #parent-gate-hint.visible {
       opacity: 1;
     }
-     @media (max-width: 768px) {
-    #install-banner {
-      padding: 6px 12px;
-      font-size: 0.8rem;
+
+    /* ==========================================================================
+       Hybrid Mobile Landscape Compact HUD & Control Overrides (Height <= 520px)
+       Leaves PC / Tablet (>520px height) 100% untouched.
+       ========================================================================== */
+    @media (max-height: 520px) {
+      #install-banner {
+        padding: 6px 12px;
+        font-size: 0.82rem;
+      }
+
+      .install-btn {
+        padding: 6px 12px;
+        font-size: 0.82rem;
+      }
+
+      .parent-gate-corner {
+        width: 64px;
+        height: 64px;
+      }
+
+      .gate-ring {
+        width: 42px;
+        height: 42px;
+      }
+
+      /* Force single-row compact top HUD bar across all 7 games */
+      #game-mount [class$="-top-bar"] {
+        padding: 6px 68px 0 68px !important;
+        gap: 8px !important;
+        flex-wrap: nowrap !important;
+      }
+
+      #game-mount [class$="-btn"],
+      #game-mount [class$="-prompt-btn"],
+      #game-mount [class$="-level-btn"],
+      #game-mount [class$="-score-pill"],
+      #game-mount [class$="-best-pill"] {
+        min-height: 42px !important;
+        min-width: 0 !important;
+        padding: 4px 12px !important;
+        font-size: clamp(0.76rem, 1.9vw, 0.92rem) !important;
+        border-width: 3px !important;
+        box-shadow: 0 3px 0 #0f172a !important;
+        gap: 6px !important;
+        white-space: nowrap !important;
+      }
+
+      /* Compact Phonics Bubble Pop stage & bubbles for short landscape height */
+      #game-mount .pbp-stage {
+        padding: 6px 68px 12px 68px !important;
+      }
+
+      #game-mount .pbp-bubble {
+        width: clamp(96px, 24vh, 124px) !important;
+        height: clamp(96px, 24vh, 124px) !important;
+      }
+
+      #game-mount .pbp-bubble svg {
+        width: 100% !important;
+        height: 100% !important;
+      }
+
+      /* Compact Pasture Fence Hopper sky counter so it never collides with top bar or sheep */
+      #game-mount .pfh-sky-counter-wrap {
+        top: 56px !important;
+      }
+
+      #game-mount .pfh-sky-counter {
+        min-width: 96px !important;
+        padding: 2px 20px !important;
+        font-size: clamp(1.8rem, 8vh, 2.6rem) !important;
+        border-width: 4px !important;
+        border-radius: 20px !important;
+        box-shadow: 0 4px 0 #0f172a !important;
+      }
+
+      #game-mount .pfh-tap-hint {
+        margin-top: 4px !important;
+        padding: 3px 12px !important;
+        font-size: 0.78rem !important;
+      }
+
+      /* Scale Tractor Hill Hauler pedals proportionally on compact phone height */
+      #game-mount .thh-pedal {
+        bottom: 10px !important;
+        width: 118px !important;
+        height: 88px !important;
+        border-radius: 20px !important;
+        border-width: 4px !important;
+        box-shadow: 0 5px 0 #0f172a !important;
+      }
+
+      #game-mount .thh-pedal-go {
+        right: 14px !important;
+      }
+
+      #game-mount .thh-pedal-horn,
+      #game-mount .thh-pedal-brake {
+        left: 14px !important;
+      }
+
+      #game-mount .thh-pedal-big {
+        font-size: 1.45rem !important;
+      }
+
+      #game-mount .thh-pedal-sub {
+        font-size: 0.78rem !important;
+      }
     }
-    .install-btn {
-      padding: 6px 10px;
-      font-size: 0.8rem;
-    }
-    .parent-gate-corner {
-      width: 64px;
-      height: 64px;
-    }
-    .gate-ring {
-      width: 40px;
-      height: 40px;
-    }
-    /* Compact game top-bars on narrow screens so buttons fit on 1 row */
-    #game-mount [class$="-top-bar"] {
-      padding: 8px 64px 0 64px !important;
-      gap: 6px !important;
-      flex-wrap: nowrap !important;
-    }
-    #game-mount [class$="-btn"],
-    #game-mount [class$="-score-pill"],
-    #game-mount [class$="-prompt-btn"],
-    #game-mount [class$="-level-btn"] {
-    min-height: 44px !important;
-    padding: 4px 12px !important;
-    font-size: 0.82rem !important;
-    border-width: 3px !important;
-    }
-    }
-    /* Portrait phone rotate-device prompt during active gameplay */
+
+    /* Friendly Rotate Prompt if opened in Portrait Phone Orientation */
     @media (max-width: 600px) and (orientation: portrait) {
-    #stage-view.active::after {
-      content: "↻ Rotate phone sideways to play!";
-      position: fixed;
-      inset: 0;
-      z-index: 850;
-      background: rgba(15, 23, 42, 0.92);
-      color: #fef08a;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      padding: 24px;
-      font-size: 1.5rem;
-      font-weight: 900;
-      pointer-events: none;
+      #stage-view.active::after {
+        content: "\21BB  Rotate phone sideways to play!";
+        position: fixed;
+        inset: 0;
+        z-index: 850;
+        background: rgba(15, 23, 42, 0.94);
+        color: #fef08a;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 28px;
+        font-size: 1.45rem;
+        font-weight: 900;
+        pointer-events: none;
+      }
     }
-  }
   </style>
 </head>
 <body>
@@ -479,7 +561,7 @@
 
       <!-- Bottom Full Game Library -->
       <section class="library-section" aria-label="All Educational Games">
-        <h2 class="library-header">ALL GAMES LIBRARY (<span id="total-games-count">4</span>)</h2>
+        <h2 class="library-header">ALL GAMES LIBRARY (<span id="total-games-count">7</span>)</h2>
         <div id="game-grid"></div>
       </section>
     </main>

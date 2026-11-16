@@ -83,7 +83,6 @@ export default class HayBaleBounceGame {
     this.loftCooldownMs = 0;
 
     // Tracks whether the current upward flight was legitimately bounced off the Hay Wagon
-    // (Prevents scoring if the ball bounced off the grass floor instead of the cart)
     this.isCartBounceActive = false;
 
     // Level 2 Target Baskets
@@ -109,7 +108,6 @@ export default class HayBaleBounceGame {
     this.score = 0;
     this.bestScore = 0;
 
-    // Always configure level dimensions BEFORE renderStage so paddleWidth & SVG match 1-to-1
     this._configureLevelDimensions();
     this.renderStage();
     this._resetBallAndHud(true);
@@ -175,15 +173,13 @@ export default class HayBaleBounceGame {
 
     const loftTargetsSvg =
       this.level === 1
-        ? /* Level 1: Single Wide Cooperative Barn Loft Target */
-          '<g id="hbb-loft-single">' +
+        ? '<g id="hbb-loft-single">' +
           '  <path d="M270 96 L500 58 L730 96 V176 H270 Z" fill="#dc2626" stroke="#0f172a" stroke-width="5" stroke-linejoin="round"/>' +
           '  <rect x="310" y="104" width="380" height="68" rx="14" fill="#fef08a" stroke="#0f172a" stroke-width="4"/>' +
           '  <path d="M322 168 Q410 132 500 162 Q590 132 678 168 Z" fill="#facc15" stroke="#ca8a04" stroke-width="3"/>' +
           '  <text x="500" y="146" text-anchor="middle" font-size="26" font-weight="900" fill="#92400e" font-family="system-ui, sans-serif">BARN LOFT (+1)</text>' +
           '</g>'
-        : /* Level 2: Three Numbered Harvest Baskets (+1, +2, +3) */
-          '<g id="hbb-loft-baskets">' +
+        : '<g id="hbb-loft-baskets">' +
           this.baskets
             .map((b, idx) => {
               const isBonus = idx === this.bonusBasketIndex;
@@ -229,7 +225,7 @@ export default class HayBaleBounceGame {
       '<style>' +
       '.hbb-root {' +
       '  width: 100%; height: 100%; position: relative; overflow: hidden;' +
-      '  touch-action: none; user-select: none; background: #bae6fd;' +
+      '  touch-action: none; user-select: none; background: #991b1b;' +
       '}' +
       '.hbb-top-bar {' +
       '  position: relative; z-index: 40; display: flex; align-items: center;' +
@@ -268,31 +264,26 @@ export default class HayBaleBounceGame {
       this.bestScore +
       ')</div>' +
       '  </div>' +
-      '  <svg class="hbb-world-svg" id="hbb-svg" viewBox="0 0 1000 560" preserveAspectRatio="none">' +
+      '  <svg class="hbb-world-svg" id="hbb-svg" viewBox="0 0 1000 560" preserveAspectRatio="xMidYMid meet">' +
       '    <defs>' +
       '      <linearGradient id="hbb-sky" x1="0" y1="0" x2="0" y2="1">' +
       '        <stop offset="0%" stop-color="#bae6fd" />' +
       '        <stop offset="100%" stop-color="#e0f2fe" />' +
       '      </linearGradient>' +
       '    </defs>' +
-      /* Sky & Barn Wall Pillars */
-      '    <rect x="0" y="0" width="1000" height="490" fill="url(#hbb-sky)" />' +
-      '    <rect x="0" y="88" width="46" height="405" fill="#dc2626" stroke="#0f172a" stroke-width="4" />' +
-      '    <rect x="954" y="88" width="46" height="405" fill="#dc2626" stroke="#0f172a" stroke-width="4" />' +
-      /* Soft Bouncy Pasture Grass Floor (Resets Rally to 0 on miss, but keeps game going!) */
-      '    <rect x="0" y="490" width="1000" height="70" fill="#22c55e" stroke="#0f172a" stroke-width="5" />' +
+      /* Wide bleed sky, barn wall pillars, and grass keep 1:1 round crops while framing 20:9 screens cleanly */
+      '    <rect x="-500" y="-300" width="2000" height="790" fill="url(#hbb-sky)" />' +
+      '    <rect x="-500" y="76" width="546" height="417" fill="#dc2626" stroke="#0f172a" stroke-width="4" />' +
+      '    <rect x="954" y="76" width="546" height="417" fill="#dc2626" stroke="#0f172a" stroke-width="4" />' +
+      '    <rect x="-500" y="490" width="2000" height="350" fill="#22c55e" stroke="#0f172a" stroke-width="5" />' +
       '    <line x1="46" y1="494" x2="954" y2="494" stroke="#86efac" stroke-width="4" stroke-dasharray="18 14" />' +
-      /* Top Barn Loft / Baskets */
       loftTargetsSvg +
-      /* Particle Burst Layer */
       '    <g id="hbb-particles"></g>' +
-      /* Bouncing Harvest Crop Ball */
       '    <g id="hbb-ball-group" transform="translate(500, 210)">' +
       '      <g id="hbb-ball-content">' +
       CROP_SPRITES[0].svg +
       '      </g>' +
       '    </g>' +
-      /* Draggable Springy Hay Bale Wagon Paddle */
       '    <g id="hbb-paddle-group" transform="translate(' +
       this.paddleX +
       ', ' +
@@ -311,7 +302,6 @@ export default class HayBaleBounceGame {
     const twine2 = Math.round(w * 0.67);
 
     return (
-      /* Golden Hay Bale Top Cushion (Exact 0..w width) */
       '<rect x="0" y="0" width="' +
       w +
       '" height="' +
@@ -331,13 +321,11 @@ export default class HayBaleBounceGame {
       '" y2="' +
       (h - 12) +
       '" stroke="#ca8a04" stroke-width="4"/>' +
-      /* Orange Wagon Bed Frame */
       '<rect x="6" y="' +
       (h - 14) +
       '" width="' +
       (w - 12) +
       '" height="12" rx="5" fill="#ea580c" stroke="#0f172a" stroke-width="3.5"/>' +
-      /* Wagon Wheels */
       '<circle cx="' +
       wheelLeftX +
       '" cy="' +
@@ -359,6 +347,22 @@ export default class HayBaleBounceGame {
       (h + 2) +
       '" r="5" fill="#f59e0b"/>'
     );
+  }
+
+  /**
+   * Maps screen clientX directly into the 1000-unit SVG coordinate space via getScreenCTM()
+   * so the hay wagon stays locked 1:1 under the child's finger on ultra-wide 20:9 phones.
+   */
+  _clientXToWorldX(svgEl, clientX) {
+    if (!svgEl) return 500;
+    try {
+      const ctm = svgEl.getScreenCTM();
+      if (ctm && ctm.a !== 0) {
+        return (clientX - ctm.e) / ctm.a;
+      }
+    } catch (_) {}
+    const rect = svgEl.getBoundingClientRect();
+    return rect.width > 0 ? ((clientX - rect.left) / rect.width) * this.worldWidth : 500;
   }
 
   _bindInputs() {
@@ -384,7 +388,6 @@ export default class HayBaleBounceGame {
         e.stopPropagation();
         this.level = this.level === 1 ? 2 : 1;
         this.audio.playSuccessChord();
-        // Set new level dimensions FIRST so renderStage draws the exact matching SVG width!
         this._configureLevelDimensions();
         this.renderStage();
         this._resetBallAndHud(true);
@@ -395,26 +398,25 @@ export default class HayBaleBounceGame {
     let activePointerId = null;
 
     const movePaddleToClientX = (clientX) => {
-      if (!svgEl) return;
-      const rect = svgEl.getBoundingClientRect();
-      if (rect.width <= 0) return;
-      const worldX = ((clientX - rect.left) / rect.width) * this.worldWidth;
+      const worldX = this._clientXToWorldX(svgEl, clientX);
       const minX = 50;
       const maxX = this.worldWidth - 50 - this.paddleWidth;
       this.paddleX = Math.max(minX, Math.min(maxX, worldX - this.paddleWidth / 2));
     };
 
     const onPointerDown = (e) => {
-      if (e.clientY < 96) return;
+      const topDeadzone = window.innerHeight <= 520 ? 54 : 96;
+      if (e.clientY < topDeadzone) return;
       if (activePointerId !== null) return;
       activePointerId = e.pointerId;
       movePaddleToClientX(e.clientX);
     };
 
     const onPointerMove = (e) => {
+      const topDeadzone = window.innerHeight <= 520 ? 54 : 96;
       if (
         e.pointerId === activePointerId ||
-        (e.pointerType === 'mouse' && e.buttons === 1 && e.clientY >= 96)
+        (e.pointerType === 'mouse' && e.buttons === 1 && e.clientY >= topDeadzone)
       ) {
         movePaddleToClientX(e.clientX);
       }
@@ -511,7 +513,6 @@ export default class HayBaleBounceGame {
 
   _scoreLoftHit(pointsAdded, hitX, hitY) {
     this.loftCooldownMs = 450;
-    // Consume the cart bounce token so a single bounce can only score once
     this.isCartBounceActive = false;
 
     this.score += pointsAdded;
@@ -557,7 +558,6 @@ export default class HayBaleBounceGame {
       this.paddleSquash = Math.max(0, this.paddleSquash - dt * 4);
     }
 
-    // Keyboard movement support
     const keySpeed = 520;
     if (this.keysHeld.left) {
       this.paddleX = Math.max(50, this.paddleX - keySpeed * dt);
@@ -569,7 +569,6 @@ export default class HayBaleBounceGame {
       );
     }
 
-    // Gentle gravity
     const gravity = this.level === 1 ? 95 : 130;
     this.ballVy += gravity * dt;
 
@@ -577,7 +576,6 @@ export default class HayBaleBounceGame {
     this.ballY += this.ballVy * dt;
     this.ballRotation += this.ballVx * dt * 0.25;
 
-    // 1. Left & Right Barn Wall Bounces
     const leftWallX = 46 + this.ballRadius;
     const rightWallX = 954 - this.ballRadius;
 
@@ -591,7 +589,6 @@ export default class HayBaleBounceGame {
       this.audio.playNote(329.63, 0.08);
     }
 
-    // 2. Top Ceiling & Barn Loft / Basket Scoring (ONLY scores if this.isCartBounceActive is true!)
     if (this.level === 1) {
       if (
         this.loftCooldownMs <= 0 &&
@@ -632,7 +629,6 @@ export default class HayBaleBounceGame {
       }
     }
 
-    // 3. Hay Bale Wagon Paddle Interception (True visual hitbox: paddleX - 6 to paddleX + paddleWidth + 6)
     const paddleTop = this.paddleY;
     const paddleLeft = this.paddleX - 6;
     const paddleRight = this.paddleX + this.paddleWidth + 6;
@@ -660,18 +656,15 @@ export default class HayBaleBounceGame {
         this.ballVy = -415;
       }
 
-      // Arm scoring because the player legitimately bounced the crop off the Hay Wagon!
       this.isCartBounceActive = true;
       this.paddleSquash = 1.0;
       this.audio.playNote(440.0, 0.14);
       this._spawnParticles(this.ballX, paddleTop, '#facc15', 5);
     }
 
-    // 4. Grass Floor Miss Bounce (Resets Rally to 0 and disarms loft scoring!)
     const grassFloorY = 490 - this.ballRadius;
     if (this.ballY >= grassFloorY) {
       this.ballY = grassFloorY;
-      // Gentle hop up to mid-screen (cannot reach loft, and disarms scoring until bounced off cart)
       this.ballVy = -265;
       this.isCartBounceActive = false;
 
@@ -684,7 +677,6 @@ export default class HayBaleBounceGame {
       this._spawnParticles(this.ballX, 490, '#86efac', 4);
     }
 
-    // Render SVG transforms (Translate paddle without scaling from x=0 origin so right edge never shifts!)
     const ballGroup = this.container.querySelector('#hbb-ball-group');
     if (ballGroup) {
       ballGroup.setAttribute(

@@ -222,7 +222,7 @@ export default class PastureFenceHopperGame {
       '.pfh-root {' +
       '  width: 100%; height: 100%; position: relative; overflow: hidden;' +
       '  display: flex; flex-direction: column; justify-content: space-between;' +
-      '  touch-action: none; user-select: none;' +
+      '  touch-action: none; user-select: none; background: #22c55e;' +
       '}' +
       '.pfh-top-bar {' +
       '  position: relative; z-index: 40; display: flex; align-items: center;' +
@@ -282,14 +282,15 @@ export default class PastureFenceHopperGame {
         : 'Tap twice in mid-air for Double Jump!') +
       '    </div>' +
       '  </div>' +
-      '  <svg class="pfh-world-svg" id="pfh-world" viewBox="0 0 1000 560" preserveAspectRatio="none">' +
+      '  <svg class="pfh-world-svg" id="pfh-world" viewBox="0 0 1000 560" preserveAspectRatio="xMidYMid meet">' +
       '    <defs>' +
       '      <linearGradient id="pfh-sky-grad" x1="0" y1="0" x2="0" y2="1">' +
       '        <stop id="pfh-sky-top" offset="0%" stop-color="#bae6fd" />' +
       '        <stop id="pfh-sky-bot" offset="100%" stop-color="#e0f2fe" />' +
       '      </linearGradient>' +
       '    </defs>' +
-      '    <rect x="0" y="0" width="1000" height="430" fill="url(#pfh-sky-grad)" />' +
+      /* Wide bleed sky & ground (-500..1500) prevent side bars on 20:9 phones while keeping 1:1 round shapes */
+      '    <rect x="-500" y="-300" width="2000" height="730" fill="url(#pfh-sky-grad)" />' +
       '    <g id="pfh-stars-group" opacity="0" style="transition: opacity 0.8s ease;">' +
       '      <circle cx="140" cy="80" r="3.5" fill="#fef08a"/>' +
       '      <circle cx="290" cy="120" r="4" fill="#ffffff"/>' +
@@ -298,9 +299,9 @@ export default class PastureFenceHopperGame {
       '      <circle cx="490" cy="60" r="3.5" fill="#fef08a"/>' +
       '    </g>' +
       '    <circle id="pfh-celestial" cx="860" cy="115" r="44" fill="#facc15" stroke="#0f172a" stroke-width="4"/>' +
-      '    <path d="M0 430 Q260 350 520 430 T1000 410 L1000 430 L0 430 Z" fill="#86efac" opacity="0.65"/>' +
-      '    <rect x="0" y="430" width="1000" height="130" fill="#22c55e" stroke="#0f172a" stroke-width="5"/>' +
-      '    <rect x="0" y="446" width="1000" height="24" fill="#16a34a" opacity="0.45"/>' +
+      '    <path d="M-400 430 Q60 350 520 430 T1400 410 L1400 430 L-400 430 Z" fill="#86efac" opacity="0.65"/>' +
+      '    <rect x="-500" y="430" width="2000" height="400" fill="#22c55e" stroke="#0f172a" stroke-width="5"/>' +
+      '    <rect x="-500" y="446" width="2000" height="24" fill="#16a34a" opacity="0.45"/>' +
       '    <g id="pfh-obstacles-group"></g>' +
       '    <g id="pfh-particles-group"></g>' +
       '    <g id="pfh-sheep-group" transform="translate(180, 362)">' +
@@ -348,7 +349,8 @@ export default class PastureFenceHopperGame {
     }
 
     const handleStageTap = (e) => {
-      if (e.clientY < 96 && (e.clientX < 96 || e.clientX > window.innerWidth - 96)) {
+      const gateSize = window.innerHeight <= 520 ? 64 : 96;
+      if (e.clientY < gateSize && (e.clientX < gateSize || e.clientX > window.innerWidth - gateSize)) {
         return;
       }
       this._triggerJump();
@@ -412,7 +414,8 @@ export default class PastureFenceHopperGame {
     const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
     g.innerHTML = template.svg;
 
-    const x = 1040;
+    // Spawn slightly further right (1220) so obstacles enter cleanly past ultra-wide mobile bleed edges
+    const x = 1220;
     const y = this.groundY - template.height - template.yOffsetFromGround;
     g.setAttribute('transform', 'translate(' + x + ', ' + y + ')');
     obsGroup.appendChild(g);
@@ -635,7 +638,7 @@ export default class PastureFenceHopperGame {
         this._handleClearedObstacle(obs);
       }
 
-      if (obs.x < -140) {
+      if (obs.x < -340) {
         if (obs.el && obs.el.parentNode) {
           obs.el.parentNode.removeChild(obs.el);
         }

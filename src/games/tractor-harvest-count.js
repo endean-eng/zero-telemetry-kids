@@ -1,11 +1,12 @@
 /**
  * @file src/games/tractor-harvest-count.js
  * @description Launch Module 2 (L-02): Tractor Harvest Counting (Levels 1, 2, & 3).
- *              - Level 1 (Single Crop): Marble-Bag 1–9 of a single crop type; exact count spawned in field.
+ *              - Level 1 (Single Crop): Marble-Bag 1-9 of a single crop type; exact count spawned in field.
  *              - Level 2 (Mixed Load): Visual recipe of 2 different crop types (e.g., 3 Pumpkins + 2 Apples)
  *                with graphical crop-icon counters on the wagon side and exact counts spawned in field.
  *              - Level 3 (Extra Crops): Mixed 2-crop visual recipe on the wagon side, but the field spawns
  *                extra distractor items of each crop so the child must stop loading a crop once its icon badge is full!
+ *              100% pure ASCII with Unicode escapes and zero template literals.
  */
 
 const NUMBER_WORDS = [
@@ -40,7 +41,7 @@ const CROPS = [
     singular: 'pumpkin',
     plural: 'pumpkins',
     svg:
-      '<svg viewBox="0 0 96 96" width="92" height="92">' +
+      '<svg viewBox="0 0 96 96" width="100%" height="100%">' +
       '<path d="M44 14 C44 8, 54 8, 54 18 L52 28 L44 28 Z" fill="#16a34a" stroke="#0f172a" stroke-width="4"/>' +
       '<ellipse cx="32" cy="56" rx="20" ry="26" fill="#ea580c" stroke="#0f172a" stroke-width="4"/>' +
       '<ellipse cx="64" cy="56" rx="20" ry="26" fill="#ea580c" stroke="#0f172a" stroke-width="4"/>' +
@@ -52,7 +53,7 @@ const CROPS = [
     singular: 'apple',
     plural: 'apples',
     svg:
-      '<svg viewBox="0 0 96 96" width="92" height="92">' +
+      '<svg viewBox="0 0 96 96" width="100%" height="100%">' +
       '<path d="M48 24 L52 10" stroke="#78350f" stroke-width="6" stroke-linecap="round"/>' +
       '<ellipse cx="60" cy="18" rx="10" ry="5" transform="rotate(-20 60 18)" fill="#16a34a" stroke="#0f172a" stroke-width="3"/>' +
       '<circle cx="48" cy="56" r="28" fill="#dc2626" stroke="#0f172a" stroke-width="4"/>' +
@@ -64,7 +65,7 @@ const CROPS = [
     singular: 'ear of corn',
     plural: 'ears of corn',
     svg:
-      '<svg viewBox="0 0 96 96" width="92" height="92">' +
+      '<svg viewBox="0 0 96 96" width="100%" height="100%">' +
       '<ellipse cx="48" cy="48" rx="18" ry="32" fill="#f59e0b" stroke="#0f172a" stroke-width="4"/>' +
       '<path d="M30 56 Q22 78 48 84 Q38 66 32 52 Z" fill="#16a34a" stroke="#0f172a" stroke-width="4" stroke-linejoin="round"/>' +
       '<path d="M66 56 Q74 78 48 84 Q58 66 64 52 Z" fill="#16a34a" stroke="#0f172a" stroke-width="4" stroke-linejoin="round"/>' +
@@ -193,7 +194,6 @@ export default class TractorHarvestCountGame {
   }
 
   _renderWagonBadgeHtml() {
-    // Renders intuitive visual crop icon + count for each required crop right on the side of the wagon!
     return this.orders
       .map((order, idx) => {
         const isDone = order.current >= order.target;
@@ -229,7 +229,6 @@ export default class TractorHarvestCountGame {
 
     const promptText = this._getPromptText();
 
-    // Render visual prompt with inline mini crop icons so non-readers understand immediately
     const visualPromptHtml = this.orders
       .map((o) => {
         return (
@@ -246,9 +245,9 @@ export default class TractorHarvestCountGame {
       .join('<span style="margin:0 4px; font-weight:900;">+</span>');
 
     const levelLabels = {
-      1: '⭐ Level 1: Single Crop',
-      2: '🌟 Level 2: Mixed Load',
-      3: '🏆 Level 3: Extra Crops'
+      1: '\u2B50 Level 1: Single Crop',
+      2: '\uD83C\uDF1F Level 2: Mixed Load',
+      3: '\uD83C\uDFC6 Level 3: Extra Crops'
     };
     const levelColors = {
       1: '#fef08a',
@@ -306,8 +305,12 @@ export default class TractorHarvestCountGame {
       '; border: 4px solid #0f172a; box-shadow: 0 5px 0 #0f172a;' +
       '  font-size: 1.05rem; font-weight: 800; color: #0f172a; cursor: pointer;' +
       '}' +
+      '.thc-rig-scale-wrap {' +
+      '  display: flex; justify-content: center; align-items: flex-end;' +
+      '  transform-origin: bottom center;' +
+      '}' +
       '.thc-rig-row {' +
-      '  display: flex; align-items: flex-end; justify-content: center; gap: 0px; margin-top: 14px;' +
+      '  display: flex; align-items: flex-end; justify-content: center; gap: 0px; margin-top: 10px;' +
       '  transition: transform 3.4s cubic-bezier(0.35, 0, 0.25, 1);' +
       '}' +
       '.thc-rig-row.drive-away { transform: translateX(115vw); }' +
@@ -356,7 +359,6 @@ export default class TractorHarvestCountGame {
       '.thc-slot { width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; }' +
       '.thc-slot svg { width: 42px; height: 42px; }' +
       '.thc-wagon-svg { position: relative; z-index: 10; }' +
-      /* Visual Recipe Badge on the side of the wagon */
       '.thc-badge {' +
       '  position: absolute; bottom: 48px; left: 46%; transform: translateX(-50%);' +
       '  background: #ffffff; border: 4px solid #0f172a;' +
@@ -373,20 +375,46 @@ export default class TractorHarvestCountGame {
       '.thc-order-text { font-size: 1.45rem; font-weight: 900; color: #0f172a; }' +
       '.thc-field-grid {' +
       '  display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 12px;' +
-      '  max-width: 920px; min-height: 176px; padding: 10px 22px; background: rgba(255, 255, 255, 0.85);' +
+      '  max-width: 920px; min-height: 168px; padding: 10px 22px; background: rgba(255, 255, 255, 0.85);' +
       '  border: 4px solid #0f172a; border-radius: 26px;' +
       '}' +
       '.thc-crop-item {' +
-      '  width: 96px; height: 96px; display: flex; align-items: center; justify-content: center;' +
+      '  width: 92px; height: 92px; display: flex; align-items: center; justify-content: center;' +
       '  cursor: grab; touch-action: none; transition: transform 0.2s ease; filter: drop-shadow(0 5px 6px rgba(15, 23, 42, 0.2));' +
       '}' +
+      '.thc-crop-item svg { width: 100%; height: 100%; display: block; }' +
       '.thc-crop-item.dragging { transition: none; z-index: 100; }' +
       '.thc-crop-item.loaded { visibility: hidden; pointer-events: none; }' +
+      /* Mobile Landscape Compact Rig & Field Scaling */
+      '@media (max-height: 520px) {' +
+      '  .thc-stage { padding: 6px 68px 8px 68px; }' +
+      '  .thc-inline-recipe { font-size: 0.92rem; padding: 1px 8px; }' +
+      '  .thc-inline-icon { width: 22px; height: 22px; }' +
+      '  .thc-inline-icon svg { width: 20px; height: 20px; }' +
+      '  .thc-rig-scale-wrap {' +
+      '    height: 138px;' +
+      '    transform: scale(0.72);' +
+      '    transform-origin: bottom center;' +
+      '  }' +
+      '  .thc-rig-row { margin-top: 0; }' +
+      '  .thc-field-grid {' +
+      '    min-height: 0;' +
+      '    max-width: 820px;' +
+      '    padding: 6px 14px;' +
+      '    gap: 8px;' +
+      '    border-width: 3px;' +
+      '    border-radius: 18px;' +
+      '  }' +
+      '  .thc-crop-item {' +
+      '    width: clamp(50px, 14.5vh, 64px);' +
+      '    height: clamp(50px, 14.5vh, 64px);' +
+      '  }' +
+      '}' +
       '</style>' +
       '<div class="thc-stage">' +
       '<div class="thc-top-bar">' +
       '<button type="button" class="thc-prompt-btn" id="thc-repeat-btn">' +
-      '<span style="font-size:1.6rem;">🔊</span>' +
+      '<span style="font-size:1.45rem;">\uD83D\uDD0A</span>' +
       '<span>Load:</span>' +
       visualPromptHtml +
       '</button>' +
@@ -394,6 +422,7 @@ export default class TractorHarvestCountGame {
       levelLabels[this.level] +
       '</button>' +
       '</div>' +
+      '<div class="thc-rig-scale-wrap">' +
       '<div class="thc-rig-row" id="thc-rig">' +
       '<div class="thc-wagon-zone" id="thc-wagon-drop">' +
       '<div class="thc-wagon-loaded">' +
@@ -430,6 +459,7 @@ export default class TractorHarvestCountGame {
       '<circle cx="112" cy="106" r="22" fill="#1e293b" stroke="#0f172a" stroke-width="5"/>' +
       '<circle cx="112" cy="106" r="9" fill="#f59e0b" stroke="#0f172a" stroke-width="3"/>' +
       '</svg>' +
+      '</div>' +
       '</div>' +
       '<div class="thc-field-grid">' +
       cropsHtml +
@@ -507,7 +537,6 @@ export default class TractorHarvestCountGame {
               this._completeRound(rigEl);
             }
           } else {
-            // Gentle bounce back: if in Level 3 and that crop's quota is already full, give a helpful hint!
             cropEl.style.transform = 'translate(0px, 0px)';
             this.audio.playGentleThud();
             if (

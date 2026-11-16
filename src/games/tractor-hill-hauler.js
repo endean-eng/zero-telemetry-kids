@@ -2,8 +2,8 @@
  * @file src/games/tractor-hill-hauler.js
  * @description Kinematic Action & Physics Module (K-04): Tractor Hill Hauler.
  *              Side-scrolling agricultural terrain & Newtonian physics sandbox teaching
- *              slope/gravity momentum, crest hops & torque wheelies, mud/water drag,
- *              catchable Stage 2 pumpkin cargo, and split-in-half ground impact physics.
+ *              slope/gravity momentum, crest hops & initial-acceleration torque wheelies,
+ *              mud/water drag, trailer-only pumpkin catching, and split-in-half ground impacts.
  *              100% pure ASCII with Unicode escapes and zero template literals.
  */
 
@@ -78,7 +78,7 @@ export default class TractorHillHaulerGame {
     this.splashTimerMs = 0;
 
     // Checkpoint interval in world pixels
-    this.barnSpacing = 2000;
+    this.barnSpacing = 2800;
     this.generatedUpToSegment = -1;
 
     // World props, particles, catchable loose pumpkins & split-in-half pumpkins
@@ -121,10 +121,6 @@ export default class TractorHillHaulerGame {
     return id;
   }
 
-  /**
-   * Deterministic smooth rolling hill terrain Y(wx).
-   * Flattens smoothly around Barn Checkpoints so barns sit level.
-   */
   _getTerrainY(wx) {
     const baseGround = 420;
     if (wx < 260) {
@@ -135,8 +131,8 @@ export default class TractorHillHaulerGame {
     const distToBarn = Math.abs(wx - nearestBarnIdx * this.barnSpacing);
 
     let hillBlend = 1.0;
-    if (distToBarn < 240) {
-      const t = distToBarn / 240;
+    if (distToBarn < 260) {
+      const t = distToBarn / 260;
       hillBlend = t * t * (3 - 2 * t);
     }
 
@@ -219,13 +215,13 @@ export default class TractorHillHaulerGame {
       const msg =
         this.level === 1
           ? 'Hold the big green GO pedal to hop over hills and smash hay bales!'
-          : 'Stage Two! Keep your pumpkins in the wagon, or catch them if they bounce up!';
+          : 'Stage Two! Keep your pumpkins in the trailer, or catch them in the wagon if they bounce up!';
       this._schedule(() => this.speech.speak(msg), 180);
     }
   }
 
   _ensureSegmentsGenerated() {
-    const currentSeg = Math.floor((this.worldX + 1200) / this.barnSpacing);
+    const currentSeg = Math.floor((this.worldX + 1650) / this.barnSpacing);
     const propsBack = this.container.querySelector('#thh-props-back');
     const propsFront = this.container.querySelector('#thh-props-front');
     if (!propsBack || !propsFront) return;
@@ -235,14 +231,17 @@ export default class TractorHillHaulerGame {
       const segIdx = this.generatedUpToSegment;
       const segStart = segIdx * this.barnSpacing;
 
-      const puddleWx = this._findLocalValley(segStart + 520, segStart + 980);
+      const puddleWx = this._findLocalValley(segStart + 620, segStart + 1180);
       this._createProp('puddle', puddleWx, propsBack);
 
-      const stack1Wx = segStart + 1120;
+      const stack1Wx = segStart + 1420;
       this._createProp('hayStack', stack1Wx, propsFront);
 
-      const stack2Wx = segStart + 1540;
+      const stack2Wx = segStart + 1940;
       this._createProp('crateStack', stack2Wx, propsFront);
+
+      const stack3Wx = segStart + 2360;
+      this._createProp('hayStack', stack3Wx, propsFront);
 
       const barnWx = (segIdx + 1) * this.barnSpacing;
       this._createProp('barn', barnWx, propsBack, segIdx + 1);
@@ -328,7 +327,7 @@ export default class TractorHillHaulerGame {
       '<style>' +
       '.thh-root {' +
       '  width: 100%; height: 100%; position: relative; overflow: hidden;' +
-      '  touch-action: none; user-select: none; background: #bae6fd;' +
+      '  touch-action: none; user-select: none; background: #92400e;' +
       '}' +
       '.thh-top-bar {' +
       '  position: relative; z-index: 40; display: flex; align-items: center;' +
@@ -379,7 +378,7 @@ export default class TractorHillHaulerGame {
       '    <button type="button" class="thh-btn" id="thh-repeat-btn">' +
       '      <span style="font-size:1.4rem;">\u266B</span>' +
       '      <span>' +
-      (this.level === 1 ? 'Hold GO to Hop Over Hills!' : 'Haul & Catch Bouncing Pumpkins!') +
+      (this.level === 1 ? 'Hold GO to Hop Over Hills!' : 'Catch Pumpkins in the Trailer!') +
       '      </span>' +
       '    </button>' +
       '    <button type="button" class="thh-btn thh-level-btn" id="thh-level-btn">' +
@@ -392,14 +391,15 @@ export default class TractorHillHaulerGame {
       '    <span class="thh-pedal-big">GO!</span>' +
       '    <span class="thh-pedal-sub">Hold Gas</span>' +
       '  </button>' +
-      '  <svg class="thh-world-svg" id="thh-svg" viewBox="0 0 1000 560" preserveAspectRatio="none">' +
+      '  <svg class="thh-world-svg" id="thh-svg" viewBox="0 0 1000 560" preserveAspectRatio="xMidYMid meet">' +
       '    <defs>' +
       '      <linearGradient id="thh-sky" x1="0" y1="0" x2="0" y2="1">' +
       '        <stop offset="0%" stop-color="#7dd3fc" />' +
       '        <stop offset="100%" stop-color="#e0f2fe" />' +
       '      </linearGradient>' +
       '    </defs>' +
-      '    <rect x="0" y="0" width="1000" height="560" fill="url(#thh-sky)" />' +
+      /* Wide bleed sky (-500..1500) + extended terrain ribbon eliminate side bars on 20:9 mobile screens */
+      '    <rect x="-500" y="-300" width="2000" height="900" fill="url(#thh-sky)" />' +
       '    <circle cx="850" cy="110" r="44" fill="#fde047" stroke="#0f172a" stroke-width="4" />' +
       '    <g id="thh-bg-clouds" opacity="0.8">' +
       '      <circle cx="190" cy="125" r="24" fill="#ffffff"/>' +
@@ -410,16 +410,13 @@ export default class TractorHillHaulerGame {
       '      <circle cx="666" cy="150" r="20" fill="#ffffff"/>' +
       '    </g>' +
       '    <g id="thh-props-back"></g>' +
-      /* Scrolling Soil Fill & Grass Top Ribbon */
       '    <path id="thh-terrain-soil" d="" fill="#92400e" stroke="#0f172a" stroke-width="4" />' +
       '    <path id="thh-terrain-grass" d="" fill="none" stroke="#22c55e" stroke-width="18" stroke-linecap="round" stroke-linejoin="round" />' +
       '    <path id="thh-terrain-outline" d="" fill="none" stroke="#0f172a" stroke-width="4.5" stroke-linecap="round" />' +
-      /* Stage 2 Coupled Cargo Trailer (Deeper forgiving side rails + flared catch rim) */
       '    <g id="thh-trailer-group" style="display:' +
       (this.level === 2 ? 'block' : 'none') +
       ';">' +
       '      <line x1="48" y1="-22" x2="132" y2="-26" stroke="#0f172a" stroke-width="8" stroke-linecap="round"/>' +
-      /* Bouncy Cargo Pumpkins Inside Bed */
       '      <g id="thh-cargo-0">' +
       this._buildMiniPumpkinSvg() +
       '</g>' +
@@ -429,7 +426,6 @@ export default class TractorHillHaulerGame {
       '      <g id="thh-cargo-2">' +
       this._buildMiniPumpkinSvg() +
       '</g>' +
-      /* Deep Wooden Side Stake Rails to cradle cargo */
       '      <line x1="-68" y1="-68" x2="68" y2="-68" stroke="#92400e" stroke-width="5" stroke-linecap="round"/>' +
       '      <polygon points="-68,-58 68,-58 54,-18 -54,-18" fill="#ea580c" stroke="#0f172a" stroke-width="4.5" stroke-linejoin="round"/>' +
       '      <g id="thh-trailer-wheel" transform="translate(0, -20)">' +
@@ -439,7 +435,6 @@ export default class TractorHillHaulerGame {
       '        <circle cx="0" cy="0" r="7" fill="#f59e0b"/>' +
       '      </g>' +
       '    </g>' +
-      /* Coupled Green Row-Crop Tractor (Origin 0,0 = Rear Tire Ground Contact) */
       '    <g id="thh-tractor-group">' +
       '      <rect x="-18" y="-96" width="52" height="44" rx="8" fill="#16a34a" stroke="#0f172a" stroke-width="4.5"/>' +
       '      <rect x="-8" y="-88" width="32" height="24" rx="4" fill="#bae6fd" stroke="#0f172a" stroke-width="3"/>' +
@@ -458,10 +453,8 @@ export default class TractorHillHaulerGame {
       '        <circle cx="0" cy="0" r="8" fill="#f59e0b" stroke="#0f172a" stroke-width="2.5"/>' +
       '      </g>' +
       '    </g>' +
-      /* Catchable Airborne Loose Pumpkins & Split-in-Half Ground Pumpkins */
       '    <g id="thh-loose-pumpkins-layer"></g>' +
       '    <g id="thh-splits-layer"></g>' +
-      /* Foreground Breakable Obstacles & Physics Particles */
       '    <g id="thh-props-front"></g>' +
       '    <g id="thh-particles-layer"></g>' +
       '  </svg>' +
@@ -480,7 +473,6 @@ export default class TractorHillHaulerGame {
   _buildLeftPumpkinHalfSvg() {
     return (
       '<path d="M-2 -21 L0 -27" stroke="#16a34a" stroke-width="3.5" stroke-linecap="round"/>' +
-      /* Outer orange rind on left, jagged golden-yellow flesh seam on right */
       '<path d="M0 -21 C-16 -21, -20 -8, -18 4 C-15 12, -6 12, 0 10 L-3 3 L2 -4 L-3 -12 Z" fill="#ea580c" stroke="#0f172a" stroke-width="3" stroke-linejoin="round"/>' +
       '<path d="M-1 -17 C-9 -16, -11 -6, -9 3 C-7 7, -2 7, 0 6 L-3 2 L1 -4 L-2 -11 Z" fill="#fde047"/>'
     );
@@ -488,7 +480,6 @@ export default class TractorHillHaulerGame {
 
   _buildRightPumpkinHalfSvg() {
     return (
-      /* Outer orange rind on right, matching jagged golden-yellow flesh seam on left */
       '<path d="M0 -21 C16 -21, 20 -8, 18 4 C15 12, 6 12, 0 10 L-2 3 L3 -4 L-2 -12 Z" fill="#f97316" stroke="#0f172a" stroke-width="3" stroke-linejoin="round"/>' +
       '<path d="M1 -17 C9 -16, 11 -6, 9 3 C7 7, 2 7, 0 6 L-1 2 L3 -4 L0 -11 Z" fill="#fde047"/>'
     );
@@ -507,7 +498,7 @@ export default class TractorHillHaulerGame {
         this.speech.speak(
           this.level === 1
             ? 'Hold the green GO pedal to hop over hills and smash hay bales!'
-            : 'Keep your pumpkins in the wagon, or drive under bouncing pumpkins to catch them!'
+            : 'Keep your pumpkins in the trailer, or catch them in the trailer if they bounce up!'
         );
       });
     }
@@ -541,9 +532,8 @@ export default class TractorHillHaulerGame {
           goPedal.setPointerCapture(e.pointerId);
         } catch (_) {}
         goPedal.classList.add('pressed');
-        // Playful torque wheelie pop when punching the throttle!
-        if (!this.isAirborne && this.speed < 280) {
-          this.wheelieVel -= 1.85;
+        if (!this.isAirborne && this.speed < 170) {
+          this.wheelieVel -= 2.35;
         }
         this.audio.playNote(293.66, 0.08);
       });
@@ -581,8 +571,8 @@ export default class TractorHillHaulerGame {
     const onKeyDown = (e) => {
       if (e.code === 'ArrowRight' || e.code === 'KeyD' || e.code === 'Space') {
         e.preventDefault();
-        if (!this.keysHeld.gas && !this.isAirborne && this.speed < 280) {
-          this.wheelieVel -= 1.85;
+        if (!this.keysHeld.gas && !this.isAirborne && this.speed < 170) {
+          this.wheelieVel -= 2.35;
         }
         this.keysHeld.gas = true;
         if (goPedal) goPedal.classList.add('pressed');
@@ -646,9 +636,6 @@ export default class TractorHillHaulerGame {
     });
   }
 
-  /**
-   * Launches an ejected pumpkin into true world-space flight so the player can catch it!
-   */
   _spawnLooseAirbornePumpkin(wx, wy, vx, vy) {
     const layer = this.container.querySelector('#thh-loose-pumpkins-layer');
     if (!layer) return;
@@ -669,9 +656,6 @@ export default class TractorHillHaulerGame {
     });
   }
 
-  /**
-   * Spawns a two-piece split pumpkin + seeds animation when a loose pumpkin hits the ground!
-   */
   _spawnSplitPumpkinAnimation(wx, groundY) {
     const splitsLayer = this.container.querySelector('#thh-splits-layer');
     if (!splitsLayer) return;
@@ -687,7 +671,6 @@ export default class TractorHillHaulerGame {
     containerG.appendChild(rightG);
     splitsLayer.appendChild(containerG);
 
-    // Pop 3 golden pumpkin seeds upward from the split!
     const screenX = this.tractorScreenX + (wx - this.worldX);
     this._spawnParticle(screenX - 8, groundY - 14, -55, -145, '#fef08a', 5);
     this._spawnParticle(screenX, groundY - 18, 8, -175, '#fef9c3', 5.5);
@@ -726,7 +709,7 @@ export default class TractorHillHaulerGame {
         this.barnsReached +
         ' | Saved: ' +
         this.cropsDeliveredTotal +
-        ' (In Bed: ' +
+        ' (Bed: ' +
         inBed +
         ')';
     }
@@ -761,19 +744,12 @@ export default class TractorHillHaulerGame {
       const word = NUMBER_WORDS[this.barnsReached] || String(this.barnsReached);
       this.speech.speak('Barn ' + word + '!');
     } else {
-      // Also count any airborne pumpkin right over the barn as caught!
-      const deliveredNow =
-        this.cargoItems.filter((c) => c.active).length + this.loosePumpkins.length;
-      this.loosePumpkins.forEach((lp) => {
-        if (lp.el && lp.el.parentNode) lp.el.parentNode.removeChild(lp.el);
-      });
-      this.loosePumpkins = [];
+      const deliveredNow = this.cargoItems.filter((c) => c.active).length;
+      this.cropsDeliveredTotal += deliveredNow;
 
-      this.cropsDeliveredTotal += Math.min(3, deliveredNow);
       if (deliveredNow > 0) {
-        const countCapped = Math.min(3, deliveredNow);
         this.speech.speak(
-          'Delivered ' + (NUMBER_WORDS[countCapped] || countCapped) + ' pumpkins! Reloading!'
+          'Delivered ' + (NUMBER_WORDS[deliveredNow] || deliveredNow) + ' pumpkins! Reloading!'
         );
       } else {
         this.speech.speak('Here are three fresh pumpkins for the next hill!');
@@ -795,7 +771,7 @@ export default class TractorHillHaulerGame {
 
     const screenX = this.tractorScreenX + (prop.wx - this.worldX);
     const color1 = prop.type === 'hayStack' ? '#facc15' : '#f97316';
-    const color2 = prop.type === 'hayStack' ? '#fde047' : '#d97706';
+    const color2 = prop.type === 'hayStack' ? '#fde047' : '#d97306';
 
     for (let i = 0; i < 7; i++) {
       this._spawnParticle(
@@ -819,7 +795,6 @@ export default class TractorHillHaulerGame {
     const isBrake =
       this.level === 2 && (this.leftPedalPointerId !== null || this.keysHeld.leftPedal);
 
-    // 1. Evaluate Ground Slope at Current Position
     const preStepGroundY = this._getTerrainY(this.worldX);
     const preStepFrontGroundY = this._getTerrainY(this.worldX + this.wheelbase);
     const groundSlopeRad = Math.max(
@@ -829,7 +804,6 @@ export default class TractorHillHaulerGame {
     const slopeRate = (groundSlopeRad - this.prevSlopeRad) / dt;
     this.prevSlopeRad = groundSlopeRad;
 
-    // 2. Longitudinal Throttle, Gravity & Drag
     const maxSpeed = this.level === 1 ? 395 : 445;
     if (isGas) {
       this.speed += (this.isAirborne ? 180 : 475) * dt;
@@ -857,11 +831,9 @@ export default class TractorHillHaulerGame {
       this.speed = 0;
     }
 
-    // Slope vertical velocity right before horizontal step (used for natural hill-crest launch!)
     const preSlopeDyDx = this._getTerrainSlopeDerivative(this.worldX);
     if (!this.isAirborne) {
       this.tractorVy = preSlopeDyDx * this.speed;
-      // Extra playful crest-hop boost when flying over a hilltop at high speed!
       if (slopeRate > 0.72 && this.speed > 245) {
         this.tractorVy = Math.min(
           this.tractorVy - 85 - (this.speed - 245) * 0.42,
@@ -873,11 +845,9 @@ export default class TractorHillHaulerGame {
       }
     }
 
-    // Advance worldX
     this.worldX = Math.max(110, this.worldX + this.speed * dt);
     this.wheelRotationDeg = (this.wheelRotationDeg + this.speed * dt * 1.65) % 360;
 
-    // 3. Vertical Airborne Hop Physics for Tractor
     const groundRearY = this._getTerrainY(this.worldX);
     const groundFrontY = this._getTerrainY(this.worldX + this.wheelbase);
     const newGroundSlopeRad = Math.max(
@@ -896,11 +866,9 @@ export default class TractorHillHaulerGame {
       this.tractorVy += tractorGravity * dt;
       this.tractorY += this.tractorVy * dt;
 
-      // Gently nose-level while soaring through the air
       const targetAirPitch = Math.max(-0.42, Math.min(0.32, this.tractorVy * 0.0008));
       this.airPitchRad += (targetAirPitch - this.airPitchRad) * Math.min(1, dt * 3.2);
 
-      // Touchdown check!
       if (this.tractorY >= groundRearY) {
         const impactVy = this.tractorVy;
         this.tractorY = groundRearY;
@@ -909,10 +877,8 @@ export default class TractorHillHaulerGame {
 
         if (impactVy > 130) {
           this.audio.playGentleThud();
-          // Puff dirt/grass dust under both tires on landing!
           this._spawnParticle(this.tractorScreenX, groundRearY - 4, -55, -65, '#d97706', 7);
           this._spawnParticle(this.tractorScreenX + 82, groundFrontY - 4, 45, -65, '#86efac', 7);
-          // Slight suspension bounce-wheelie absorb
           this.wheelieVel += 0.75;
         }
       }
@@ -920,27 +886,23 @@ export default class TractorHillHaulerGame {
       this.tractorY = groundRearY;
     }
 
-    // 4. Playful Torque Wheelie Spring-Damper (Lifts front tire under hard gas & uphill climbs!)
     if (!this.isAirborne) {
       let targetWheelie = 0;
-      if (isGas && !isBrake && this.speed > 40) {
-        // Stronger wheelie when accelerating or pulling uphill (newGroundSlopeRad < 0)
-        const accelFactor = Math.max(0, 1 - this.speed / (maxSpeed * 0.92));
-        const uphillBonus = newGroundSlopeRad < -0.05 ? Math.abs(newGroundSlopeRad) * 0.38 : 0;
-        targetWheelie = -(0.11 * accelFactor + uphillBonus + 0.04);
+      if (isGas && !isBrake && this.speed > 10 && this.speed < 190) {
+        const launchRatio = 1 - this.speed / 190;
+        targetWheelie = -0.22 * launchRatio * launchRatio;
       }
       if (isBrake) {
         targetWheelie = 0.02;
       }
 
-      const springK = 26;
-      const damping = 7.5;
+      const springK = 34;
+      const damping = 8.2;
       const wheelieAccel =
         (targetWheelie - this.wheelieRad) * springK - this.wheelieVel * damping;
       this.wheelieVel += wheelieAccel * dt;
       this.wheelieRad += this.wheelieVel * dt;
-      // Clamp wheelie between -18 degrees (nose high!) and 0
-      this.wheelieRad = Math.max(-0.31, Math.min(0.02, this.wheelieRad));
+      this.wheelieRad = Math.max(-0.32, Math.min(0.02, this.wheelieRad));
     } else {
       this.wheelieRad *= 1 - Math.min(1, dt * 4);
       this.wheelieVel = 0;
@@ -950,7 +912,6 @@ export default class TractorHillHaulerGame {
       ? this.airPitchRad
       : Math.max(-0.56, Math.min(0.52, newGroundSlopeRad + this.wheelieRad));
 
-    // Exhaust smoke puffs
     if (isGas) {
       this.exhaustTimerMs -= dt * 1000;
       if (this.exhaustTimerMs <= 0) {
@@ -966,13 +927,11 @@ export default class TractorHillHaulerGame {
       }
     }
 
-    // 5. Stage 2 Trailer Hop, Forgiving Cargo Physics, Mid-Air Catching & Split-in-Half Impacts
     const trailerDist = 132;
     const trailerWx = this.worldX - trailerDist;
     const trailerGroundY = this._getTerrainY(trailerWx);
 
     if (this.level === 2) {
-      // Trailer also hops gently over sharp crests while staying hitched to the tractor!
       const trailerSlopeDyDx = this._getTerrainSlopeDerivative(trailerWx);
       if (!this.trailerAirborne) {
         this.trailerVy = trailerSlopeDyDx * this.speed;
@@ -991,8 +950,6 @@ export default class TractorHillHaulerGame {
         this.trailerY = trailerGroundY;
       }
 
-      // Much more forgiving pumpkin jolt inside the deep stake-bed trailer!
-      // Only high speed (> 325 px/s) over steep crests pops a pumpkin into catchable flight.
       const crestJolt =
         slopeRate > 1.02 && this.speed > 325
           ? (slopeRate - 1.02) * (this.speed - 300) * 0.62
@@ -1003,11 +960,9 @@ export default class TractorHillHaulerGame {
         if (!c.active) continue;
 
         if (crestJolt > 0 && c.yOffset > -12) {
-          // Pop only one or two pumpkins mildly rather than ejecting the whole load at once
           c.vy -= Math.min(285, crestJolt * (0.72 + i * 0.14));
         }
 
-        // Gentle spring-gravity keeps pumpkins nestled happily during normal hill driving
         c.vy += 640 * dt;
         c.yOffset += c.vy * dt;
 
@@ -1017,12 +972,10 @@ export default class TractorHillHaulerGame {
           if (Math.abs(c.vy) < 22) c.vy = 0;
         }
 
-        // If a pumpkin clears the top stake rail, launch it as a CATCHABLE airborne pumpkin!
         if (c.yOffset < -54) {
           c.active = false;
           const launchWx = trailerWx + c.slotX;
           const launchWy = this.trailerY - 54 + c.yOffset;
-          // Slightly slower than tractor speed so slowing down slightly or matching pace catches it right in the bed!
           const launchVx = this.speed * 0.91;
           const launchVy = Math.max(-255, c.vy - 75);
           this._spawnLooseAirbornePumpkin(launchWx, launchWy, launchVx, launchVy);
@@ -1031,14 +984,13 @@ export default class TractorHillHaulerGame {
         }
       }
 
-      // Update Loose Airborne Pumpkins (Check for Trailer/Tractor Catch OR Ground Split!)
       for (let i = this.loosePumpkins.length - 1; i >= 0; i--) {
         const lp = this.loosePumpkins[i];
         if (lp.graceMs > 0) {
           lp.graceMs = Math.max(0, lp.graceMs - dt * 1000);
         }
 
-        lp.vy += 470 * dt; // Floaty arc so toddlers/preschoolers have plenty of time to catch!
+        lp.vy += 470 * dt;
         lp.wx += lp.vx * dt;
         lp.wy += lp.vy * dt;
         lp.rot += lp.vrot * dt;
@@ -1057,20 +1009,14 @@ export default class TractorHillHaulerGame {
           );
         }
 
-        // 1) Generous Catch Check: Lands in Trailer Bed (+/- 86px wide!) OR bounces off Tractor into bed!
         let caught = false;
-        if (lp.graceMs <= 0 && lp.vy > -35) {
+        if (lp.graceMs <= 0 && lp.vy > -25) {
           const inTrailerCatchZone =
-            Math.abs(lp.wx - trailerWx) <= 86 &&
-            lp.wy >= this.trailerY - 82 &&
-            lp.wy <= this.trailerY - 6;
+            Math.abs(lp.wx - trailerWx) <= 76 &&
+            lp.wy >= this.trailerY - 76 &&
+            lp.wy <= this.trailerY - 12;
 
-          const inTractorCatchZone =
-            Math.abs(lp.wx - (this.worldX + 32)) <= 64 &&
-            lp.wy >= this.tractorY - 96 &&
-            lp.wy <= this.tractorY - 16;
-
-          if (inTrailerCatchZone || inTractorCatchZone) {
+          if (inTrailerCatchZone) {
             const freeSlot = this.cargoItems.find((slot) => !slot.active);
             if (freeSlot) {
               freeSlot.active = true;
@@ -1093,7 +1039,6 @@ export default class TractorHillHaulerGame {
           continue;
         }
 
-        // 2) Ground Impact -> Split Pumpkin in Half Animation!
         const groundAtPumpkin = this._getTerrainY(lp.wx);
         if (lp.wy >= groundAtPumpkin - 8) {
           this.audio.playGentleThud();
@@ -1103,7 +1048,6 @@ export default class TractorHillHaulerGame {
         }
       }
 
-      // Update Split-in-Half Pumpkin Halves Tumbling & Settling on the Grass
       for (let i = this.splitPumpkins.length - 1; i >= 0; i--) {
         const sp = this.splitPumpkins[i];
         sp.lifeSec -= dt;
@@ -1114,7 +1058,6 @@ export default class TractorHillHaulerGame {
           continue;
         }
 
-        // Left & Right halves hop apart, settle onto y = 0 (ground surface), and tip open
         sp.leftVy += 520 * dt;
         sp.leftX += sp.leftVx * dt;
         sp.leftY += sp.leftVy * dt;
@@ -1167,7 +1110,6 @@ export default class TractorHillHaulerGame {
       }
     }
 
-    // 6. Generate Upcoming Segments & Check Puddles / Crates / Barn Checkpoints
     this._ensureSegmentsGenerated();
 
     const tractorFrontWx = this.worldX + 95;
@@ -1209,7 +1151,6 @@ export default class TractorHillHaulerGame {
         (prop.type === 'hayStack' || prop.type === 'crateStack') &&
         !prop.triggered
       ) {
-        // Allow smashing obstacles whether rolling or landing on them!
         if (
           Math.abs(tractorFrontWx - prop.wx) < 52 &&
           this.tractorY >= prop.wy - 76
@@ -1222,13 +1163,12 @@ export default class TractorHillHaulerGame {
         }
       }
 
-      if (prop.wx < this.worldX - 650) {
+      if (prop.wx < this.worldX - 850) {
         if (prop.el && prop.el.parentNode) prop.el.parentNode.removeChild(prop.el);
         this.props.splice(i, 1);
       }
     }
 
-    // 7. Update Physics Particles
     for (let i = this.particles.length - 1; i >= 0; i--) {
       const pt = this.particles[i];
       pt.lifeSec -= dt;
@@ -1246,14 +1186,14 @@ export default class TractorHillHaulerGame {
       }
     }
 
-    // 8. Render Continuous SVG Terrain Ribbon
+    // Extended -350..1350 surface ribbon ensures continuous hills across 20:9 mobile screens
     let surfacePath = '';
-    for (let sx = -25; sx <= 1025; sx += 25) {
+    for (let sx = -350; sx <= 1350; sx += 25) {
       const wx = this.worldX + (sx - this.tractorScreenX);
       const wy = Math.round(this._getTerrainY(wx));
-      surfacePath += (sx === -25 ? 'M ' : ' L ') + sx + ' ' + wy;
+      surfacePath += (sx === -350 ? 'M ' : ' L ') + sx + ' ' + wy;
     }
-    const soilPath = surfacePath + ' L 1025 580 L -25 580 Z';
+    const soilPath = surfacePath + ' L 1350 750 L -350 750 Z';
 
     const soilEl = this.container.querySelector('#thh-terrain-soil');
     const grassEl = this.container.querySelector('#thh-terrain-grass');
@@ -1262,7 +1202,6 @@ export default class TractorHillHaulerGame {
     if (grassEl) grassEl.setAttribute('d', surfacePath);
     if (outlineEl) outlineEl.setAttribute('d', surfacePath);
 
-    // 9. Render Tractor (with Wheelie & Airborne Hop!) & Coupled Stage 2 Trailer
     const tractorDeg = (activeTractorPitchRad * 180) / Math.PI;
     const tractorGroup = this.container.querySelector('#thh-tractor-group');
     if (tractorGroup) {

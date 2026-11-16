@@ -1,15 +1,13 @@
 /**
  * @file sw.js
- * @description Hardened Service Worker (v12) for Zero-Telemetry Kids.
+ * @description Hardened Service Worker (v14) for Zero-Telemetry Kids.
  */
 
-const CACHE_NAME = 'zero-telemetry-kids-v12';
+const CACHE_NAME = 'zero-telemetry-kids-v14';
 
 const PRECACHE_ASSETS = [
   './',
   './index.html',
-  './play/',
-  './play/index.html',
   './manifest.json',
   './src/app.js',
   './src/install-helper.js',
@@ -28,14 +26,16 @@ self.addEventListener('install', (event) => {
     caches.open(CACHE_NAME).then((cache) => {
       return Promise.all(
         PRECACHE_ASSETS.map((url) =>
-          fetch(new Request(url, { cache: 'reload' })).then(async (res) => {
-            if (res && res.status === 200) {
-              const buf = await res.clone().arrayBuffer();
-              if (buf.byteLength > 0) {
-                return cache.put(url, res);
+          fetch(new Request(url, { cache: 'reload' }))
+            .then(async (res) => {
+              if (res && res.status === 200) {
+                const buf = await res.clone().arrayBuffer();
+                if (buf.byteLength > 0) {
+                  return cache.put(url, res);
+                }
               }
-            }
-          })
+            })
+            .catch(() => null)
         )
       );
     })
@@ -64,7 +64,7 @@ self.addEventListener('fetch', (event) => {
   let request = event.request;
   const url = new URL(request.url);
 
-  // Normalize directory trailing slashes to load index.html correctly
+  // Normalize directory trailing slashes to load index.html cleanly
   if (url.pathname.endsWith('/')) {
     const targetUrl = url.origin + url.pathname + 'index.html';
     request = new Request(targetUrl, {
