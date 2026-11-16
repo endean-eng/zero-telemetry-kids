@@ -2,7 +2,7 @@
 
  * @file sw.js
 
- * @description Hardened Service Worker (v9) for Zero-Telemetry Kids.
+ * @description Hardened Service Worker (v10) for Zero-Telemetry Kids.
 
  *              Includes tractor-hill-hauler.js in PRECACHE_ASSETS, never caches 0-byte responses,
 
@@ -12,7 +12,7 @@
 
 
 
-const CACHE_NAME = 'zero-telemetry-kids-v9';
+const CACHE_NAME = 'zero-telemetry-kids-v10';
 
 
 
@@ -116,100 +116,65 @@ self.addEventListener('activate', (event) => {
 
 });
 
-
+// ... keep PRECACHE_ASSETS, install, and activate listeners unchanged ...
 
 self.addEventListener('fetch', (event) => {
-
   if (event.request.method !== 'GET') return;
 
-
+  // SPA Navigation Fallback: Serve index.html for all subroute page loads
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      caches.match('./index.html').then((cachedResponse) => {
+        return cachedResponse || fetch(event.request).catch(() => caches.match('./index.html'));
+      })
+    );
+    return;
+  }
 
   const host = self.location.hostname;
 
   const isLocalDev =
-
     host === 'localhost' ||
-
     host === '127.0.0.1' ||
-
     host === '[::1]' ||
-
     host === '::1' ||
-
     host.indexOf('192.168.') === 0 ||
-
     host.indexOf('10.') === 0;
 
-
-
   if (isLocalDev) {
-
     event.respondWith(
-
       fetch(new Request(event.request, { cache: 'no-store' }))
-
         .then(async (networkResponse) => {
-
           if (networkResponse && networkResponse.status === 200) {
-
             const buf = await networkResponse.clone().arrayBuffer();
-
             if (buf.byteLength > 0) {
-
               const clone = networkResponse.clone();
-
               caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
-
             }
-
           }
-
           return networkResponse;
-
         })
-
         .catch(() => caches.match(event.request, { ignoreSearch: true }))
-
     );
-
     return;
-
   }
 
-
-
   event.respondWith(
-
     caches.match(event.request, { ignoreSearch: true }).then((cachedResponse) => {
-
       if (cachedResponse) {
-
         return cachedResponse;
-
       }
 
       return fetch(event.request).then(async (networkResponse) => {
-
         if (networkResponse && networkResponse.status === 200) {
-
           const buf = await networkResponse.clone().arrayBuffer();
-
           if (buf.byteLength > 0) {
-
             const clone = networkResponse.clone();
-
             caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
-
           }
-
         }
-
         return networkResponse;
-
       });
-
     })
-
   );
-
 });
