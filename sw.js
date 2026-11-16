@@ -1,9 +1,9 @@
 /**
  * @file sw.js
- * @description Hardened Service Worker (v11) for Zero-Telemetry Kids.
+ * @description Hardened Service Worker (v12) for Zero-Telemetry Kids.
  */
 
-const CACHE_NAME = 'zero-telemetry-kids-v11';
+const CACHE_NAME = 'zero-telemetry-kids-v12';
 
 const PRECACHE_ASSETS = [
   './',
