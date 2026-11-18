@@ -1,9 +1,10 @@
 /**
  * @file sw.js
- * @description Hardened Service Worker (v14) for Zero-Telemetry Kids.
+ * @description Hardened Service Worker (v15) for Zero-Telemetry Kids.
+ *              Enforces 100% offline cache-first execution in production while preventing zero-byte cache poisoning.
  */
 
-const CACHE_NAME = 'zero-telemetry-kids-v14';
+const CACHE_NAME = 'zero-telemetry-kids-v15';
 
 const PRECACHE_ASSETS = [
   './',
@@ -58,6 +59,24 @@ self.addEventListener('activate', (event) => {
   );
 });
 
+/**
+ * Validates that a network HTTP 200 response contains a non-empty payload before storing it in CacheStorage.
+ * Prevents transient dev-server or interrupted network responses from poisoning the offline PWA cache with 0-byte files.
+ * @param {Request} request Normalized fetch Request key.
+ * @param {Response} networkResponse Fresh network Response to validate and clone.
+ * @returns {Promise<Response>} Original networkResponse passed through for immediate client consumption.
+ */
+async function cacheNetworkResponse(request, networkResponse) {
+  if (networkResponse && networkResponse.status === 200) {
+    const buf = await networkResponse.clone().arrayBuffer();
+    if (buf.byteLength > 0) {
+      const clone = networkResponse.clone();
+      caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
+    }
+  }
+  return networkResponse;
+}
+
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
 
@@ -88,16 +107,7 @@ self.addEventListener('fetch', (event) => {
   if (isLocalDev) {
     event.respondWith(
       fetch(new Request(request, { cache: 'no-store' }))
-        .then(async (networkResponse) => {
-          if (networkResponse && networkResponse.status === 200) {
-            const buf = await networkResponse.clone().arrayBuffer();
-            if (buf.byteLength > 0) {
-              const clone = networkResponse.clone();
-              caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
-            }
-          }
-          return networkResponse;
-        })
+        .then((networkResponse) => cacheNetworkResponse(request, networkResponse))
         .catch(() => caches.match(request, { ignoreSearch: true }))
     );
     return;
@@ -109,16 +119,9 @@ self.addEventListener('fetch', (event) => {
         return cachedResponse;
       }
 
-      return fetch(request).then(async (networkResponse) => {
-        if (networkResponse && networkResponse.status === 200) {
-          const buf = await networkResponse.clone().arrayBuffer();
-          if (buf.byteLength > 0) {
-            const clone = networkResponse.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
-          }
-        }
-        return networkResponse;
-      });
+      return fetch(request).then((networkResponse) =>
+        cacheNetworkResponse(request, networkResponse)
+      );
     })
   );
 });

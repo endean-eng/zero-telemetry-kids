@@ -1,0 +1,44 @@
+# TOKENME.txt — AI Continuity & Epistemic Index (v2.1)
+# Repository: endean-eng/zero-telemetry-kids
+# Symbol Compendium: -> @.agents/context/symbol-index.txt
+
+## Section 1: System Topology & Runtime
+* `Runtime`: 100% Vanilla ES6 Modules (`type="module"`), HTML5, Inline SVG, Web Audio API (`AudioContext`), Web Speech API (`window.speechSynthesis`), Cache-First Service Worker (`sw.js`).
+* `Security & Air-Gap`: Locked CSP in `index.html` (`default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self';`). Zero external CDNs, zero raster images, zero MP3/WAV files, zero npm/bundler dependencies.
+* `Symbol Index`: Detailed function/class signatures indexed in `@.agents/context/symbol-index.txt`.
+
+## Section 2: File Responsibility Map
+* `index.html`: Strict-CSP PWA shell, scoped `touch-action` rules (`pan-y !important` on `#launcher-view, #launcher-view *`, `none` on `#stage-view, #stage-view *`), `.game-card.is-holding` and `.hold-ring-*` styles, responsive HUD media queries (`max-height: 520px`), and Dual-Corner Parent Gate SVG DOM.
+* `manifest.json`: Standalone landscape PWA manifest and inline SVG app icons.
+* `sw.js`: Cache-first offline Service Worker (`CACHE_NAME = 'zero-telemetry-kids-v15'`) pre-caching all core shell and mini-game ES6 modules in `PRECACHE_ASSETS` and validating non-empty HTTP 200 payloads via `cacheNetworkResponse(request, networkResponse)`.
+* `src/app.js`: Owns the SPA launcher, `450ms` stationary long-press `.game-card` activation with radial SVG progress ring (`pan-y` scroll-safe), `ztk_favorites_v1` persistence, Hero Draft selection, Web Audio synth (`SoundEngine`), Speech wrapper (`SpeechEngine`), `PointerManager`, Dual-Corner `ParentGate`, and mobile landscape lock.
+* `src/install-helper.js`: OS-aware install banner handling Chromium `beforeinstallprompt` and iOS/iPadOS Safari "Add to Home Screen" callouts.
+* `src/registry.js`: Declarative `GAME_REGISTRY` array mapping mini-game metadata (`id`, `title`, `category`, `ageBracket`, `accentColor`, `iconSvg`) to dynamic `import()` loaders.
+* `src/games/barn-shape-sort.js`: Montessori sensorial shape-matching drag-and-drop game module.
+* `src/games/tractor-harvest-count.js`: Montessori numeracy counting drag-and-drop game module.
+* `src/games/phonics-bubble-pop.js`: Montessori language phonics bubble-popping game module.
+* `src/games/pasture-fence-hopper.js`: Action & physics one-tap sheep fence-jumping game module.
+* `src/games/hay-bale-bounce.js`: Action & physics horizontal paddle-bouncing game module.
+* `src/games/sprinkler-sprout-defense.js`: Action & physics water-droplet sprout-catching game module.
+* `src/games/tractor-hill-hauler.js`: Action & physics dual-pedal tractor hill-climbing game module.
+* `docs/decisions/ADR-001_2026-11-18_Launcher-Touch-Action-Pan-Y-And-Long-Press-Launch.md`: Architecture Decision Record governing `#launcher-view` descendant `touch-action: pan-y` unblocking and `450ms` radial long-press card activation.
+
+## Section 3: Data Contracts & State Invariants
+* `Mini-Game Lifecycle Contract`: Every module in `src/games/<slug>.js` exports a default class implementing `mount(containerEl, audioApi, speechApi, helpers)` and `unmount()`.
+* `Launcher Card Activation Contract`: Launching a game from `#launcher-view` requires a stationary pointer hold of `CARD_LONG_PRESS_MS = 450` with Euclidean drift <= `10px` (`SCROLL_CANCEL_PX = 10`) and radial SVG progress ring (`HOLD_RING_CIRCUMFERENCE = 201.06`), whereas `.fav-toggle-btn` and `#btn-shuffle-hero` execute on standard single-tap `click`.
+* `Favorites Persistence`: Stored in `localStorage` under `FAV_STORAGE_KEY = 'ztk_favorites_v1'` as a JSON array of `game.id` strings.
+* `Preschool Ergonomics Contract`: Interactive targets >= `96x96 CSS px`, drop-target magnetic snap radius `+24px` (`PointerManager.isWithinSnapRadius`), single-pointer locking (`activePointerId`) for palm-rest forgiveness, zero fail states/timers.
+
+## Section 4: Hard Constraints & Anti-Patterns (DO NOT VIOLATE)
+* `[CRITICAL]`: Never apply `touch-action: none` to `#launcher-view` or `.game-card` descendants; `#launcher-view, #launcher-view *` MUST maintain `touch-action: pan-y` so touch drags initiated anywhere on screen scroll the launcher natively, while `#stage-view` enforces `touch-action: none` during gameplay.
+* `[CRITICAL]`: Do not call `setPointerCapture()` on `.game-card` elements in `#launcher-view`; capturing the pointer interferes with mobile browser compositors transitioning a touch drag into a native `pan-y` scroll gesture.
+* `[CRITICAL]`: Every new mini-game in `src/games/<slug>.js` MUST be registered in both `src/registry.js` and `PRECACHE_ASSETS` in `sw.js`, and `CACHE_NAME` MUST be incremented on shell/asset updates.
+* `[CRITICAL]`: Enforce 100% pure ASCII with `\uXXXX` escapes in JS strings to prevent UTF-8/Windows-1252 mojibake across static servers.
+
+## Section 5: Intentional Quirks & Fragile Zones
+* `[src/app.js : _createCardElement]`: Uses `450ms` `requestAnimationFrame` radial hold-to-launch without `setPointerCapture()` and suppresses `contextmenu` on `.game-card` so mobile touch-drags (`> 10px`) cleanly hand off to native `pan-y` scrolling without accidental game launches or OS long-press callouts (see `@docs/decisions/ADR-001_2026-11-18_Launcher-Touch-Action-Pan-Y-And-Long-Press-Launch.md`).
+* `[src/app.js : _engageMobileLandscape]`: Calls `requestFullscreen()` followed by `screen.orientation.lock('landscape')` inside the user activation gesture, swallowing rejections on iOS Safari where orientation lock is unsupported.
+* `[src/app.js : _bindParentGate]`: Adapts dynamically to `e.pointerType`; requires holding both top corners simultaneously for `2000ms` on touch/pen devices (`bothHeld`), but allows holding either top corner for `2000ms` when using a desktop mouse (`anyHeld`).
+
+## Section 6: Active Tech Debt / Next Phase Hooks
+* `ADR-001` extracted to `docs/decisions/ADR-001_2026-11-18_Launcher-Touch-Action-Pan-Y-And-Long-Press-Launch.md` and `CACHE_NAME` bumped to `'zero-telemetry-kids-v15'` in `sw.js` alongside the launcher update.

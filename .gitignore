@@ -1,0 +1,11 @@
+# Agentic Internal Decisions & Ephemeral State
+.agents/decisions-internal/
+.agents/PLAN.md
+.agents/context/.active-role
+
+# OS & Editor Artifacts
+.DS_Store
+Thumbs.db
+Desktop.ini
+*.swp
+*~

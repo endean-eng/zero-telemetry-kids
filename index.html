@@ -31,7 +31,6 @@
       user-select: none;
       -webkit-user-select: none;
       -webkit-touch-callout: none;
-      touch-action: none;
     }
 
     html, body {
@@ -95,7 +94,12 @@
       cursor: pointer;
     }
 
-    /* Launcher View */
+    /* Launcher View: Explicitly unlock vertical touch scrolling across all descendants so card tiles never block native pan-y scroll */
+    #launcher-view,
+    #launcher-view * {
+      touch-action: pan-y !important;
+    }
+
     #launcher-view {
       flex: 1;
       display: flex;
@@ -104,7 +108,7 @@
       justify-content: flex-start;
       padding: 18px 24px 36px 24px;
       overflow-y: auto;
-      touch-action: pan-y;
+      -webkit-overflow-scrolling: touch;
     }
 
     .launcher-header {
@@ -196,11 +200,35 @@
       cursor: pointer;
       overflow: hidden;
       box-shadow: 0 6px 16px rgba(15, 23, 42, 0.08);
-      transition: transform 0.15s ease, border-color 0.15s ease;
+      transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.15s ease;
     }
 
-    .game-card:active {
-      transform: scale(0.97);
+    .game-card.is-holding {
+      transform: scale(1.035);
+      box-shadow: 0 12px 24px rgba(15, 23, 42, 0.2);
+    }
+
+    .hold-ring-overlay {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(15, 23, 42, 0.28);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.12s ease;
+      z-index: 20;
+    }
+
+    .game-card.is-holding .hold-ring-overlay {
+      opacity: 1;
+    }
+
+    .hold-ring-svg {
+      width: 84px;
+      height: 84px;
+      filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.35));
     }
 
     .game-card.hero-card {
@@ -329,7 +357,12 @@
       width: 100%;
     }
 
-    /* Active Game Stage */
+    /* Active Game Stage: Lock touch-action to none during gameplay to prevent viewport rubber-banding and pull-to-refresh */
+    #stage-view,
+    #stage-view * {
+      touch-action: none;
+    }
+
     #stage-view {
       display: none;
       position: relative;
@@ -542,7 +575,7 @@
     <main id="launcher-view">
       <header class="launcher-header">
         <h1>Zero-Telemetry Kids</h1>
-        <p>Tap a heart to favorite a game! Hold top corner (PC) or both corners (Touch) inside any game to exit.</p>
+        <p>Hold a picture to play! Tap a heart to favorite.</p>
       </header>
 
       <!-- Top Roguelike Hero Draft: 1 Favorite + 1 Discovery Pick -->

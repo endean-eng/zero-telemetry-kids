@@ -20,7 +20,7 @@ You do not need to know how to code or use GitHub to put these games on your chi
 * **100% Free Forever:** No subscriptions, no in-app purchases, and no locked chests.
 * **Zero Ads & Zero Tracking:** Completely air-gapped after initial load. No data ever leaves your device.
 * **Works Offline (Airplane Mode Ready):** Once saved to your Home Screen, every game works offline on road trips and flights.
-* **Calm, Tantrum-Free Design:** Oversized touch targets ($96 \times 96\text{ px}$), palm-rest forgiveness for little hands, zero countdown timers, and zero harsh buzzer sounds.
+* **Calm, Tantrum-Free Design:** Oversized touch targets ($96 \times 96\text{ px}$), scroll-safe `450ms` hold-to-play game cards with a radial progress ring, palm-rest forgiveness for little hands, zero countdown timers, and zero harsh buzzer sounds.
 * **Dual-Corner Parent Gate:** Hold both top corners of the screen for $2\text{ seconds}$ to exit or change settings.
 
 ### How to Save for Offline Play (30 Seconds)
@@ -145,6 +145,7 @@ To allow our multi-agent pipelines to one-shot the base application in $60\text{
    * **Tactile Sound Effects:** Native `AudioContext` oscillator nodes generate cheerful pentatonic marimba/chime chords on successful drops and gentle low-frequency thuds on misses—zero `.mp3` or `.wav` files required.
 4. **3-to-4-Year-Old Motor & Cognitive Ergonomics (Human-Factors Guardrails):**
    * **Oversized Hitboxes:** Minimum touch target size of $96 \times 96\text{ CSS pixels}$ with a $+24\text{ px}$ invisible magnetic snap radius on drop targets.
+   * **Scroll-Safe `450ms` Long-Press Launcher Cards (`ADR-001`):** `#launcher-view, #launcher-view *` enforces `touch-action: pan-y` while game cards require a stationary `450ms` hold (`<= 10px` drift) with a radial SVG progress ring (`r = 32`), allowing vertical touch scrolling from anywhere on screen without accidental game launches.
    * **Palm-Rest Multi-Touch Debouncing:** Toddlers frequently rest the thumb or palm of one hand on the screen bezel while dragging with their index finger. Pointer event handlers track active `pointerId` values independently rather than aborting drag state on secondary touch events.
    * **Zero Failure Punishment:** No countdown timers, no "Game Over" states, and no harsh buzzer noises. Incorrect drops gently bounce back to the staging tray with a calm visual cue.
    * **Dual-Corner Parent Gate:** Exiting to the parent settings/install screen requires holding two opposite top corners simultaneously for $2.0\text{ seconds}$ (preventing accidental toddler exits while avoiding text-based math gates).
@@ -160,11 +161,14 @@ zero-telemetry-kids/
 ├── README.md                  # Two-tier parent & systems engineering documentation
 ├── AGENTS.md                  # Hard architectural, CSP, & motor-ergonomic invariants
 ├── TOKENME.txt                # Declarative v2.1 epistemic index & Merkle STATE_ROOT
-├── LICENSE.md                 # Dual MIT (Code) / CC-BY 4.0 (Assets & Specs) license
-├── To Do.md                   # Phased implementation roadmap & Montessori seed queue
+├── LICENSE                    # Dual MIT (Code) / CC-BY 4.0 (Assets & Specs) license
+├── PRIVACY.md                 # Zero-telemetry COPPA & family privacy declaration
+├── roadmap.md                 # Phased implementation roadmap & Montessori seed queue
 ├── index.html                 # Strict-CSP PWA shell & Dual-Corner Parent Gate
 ├── manifest.json              # Standalone landscape PWA manifest
-├── sw.js                      # 100% pre-cached offline Service Worker
+├── sw.js                      # 100% pre-cached offline Service Worker (v15)
+├── docs/
+│   └── decisions/             # Architecture Decision Records (ADR-001+)
 └── src/
     ├── app.js                 # Core launcher, AudioContext synth, & SpeechSynthesis wrapper
     ├── install-helper.js      # OS-aware Android (beforeinstallprompt) & iOS install banner
