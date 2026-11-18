@@ -44,9 +44,9 @@
 ---
 
 ## Phase 4: `deaninno.com/kids` Parent Portal & Backlog Intake (`45m Human` / `15m Agent`)
-- [ ] **4.1** Configure static submodule or automated build mirror from `endean-eng/zero-telemetry-kids` to `deaninno.com/kids`.
-- [ ] **4.2** Build the parent-facing landing section with clear "Why" messaging (*100% Free, Zero Ads, Works Offline on Flights & Road Trips*) and visual install steps.
-- [ ] **4.3** Wire up the serverless 3-field **"Parent Idea $\rightarrow$ Agent Prompt"** form (via Cloudflare Pages Functions, Web3Forms, or Formspree with honeypot anti-spam):
+- [x] **4.1** Configure static submodule or automated build mirror from `endean-eng/zero-telemetry-kids` to `deaninno.com/kids`.
+- [x] **4.2** Build the parent-facing landing section with clear "Why" messaging (*100% Free, Zero Ads, Works Offline on Flights & Road Trips*) and visual install steps.
+- [x] **4.3** Wire up the serverless 3-field **"Parent Idea $\rightarrow$ Agent Prompt"** form (via Cloudflare Pages Functions, Web3Forms, or Formspree with honeypot anti-spam):
   1. **Child's Age Bracket:** `[ 2–3 yrs | 3–4 yrs | 4–5 yrs ]`
   2. **Target Skill or Theme:** *(Free text)*
   3. **What frustrates you or your child in existing apps that try to teach this?** *(Free text)*
@@ -56,10 +56,7 @@
 ## Phase 5: Epistemic Sync, Verification, & Dual-Track Launch (`15m Human` / `10m Agent`)
 - [ ] **5.1** Execute `python3 tokenme-sync.py` to index all `DOMAIN_CODE` ES6 modules and `OPAQUE_ASSET` SVGs.
 - [ ] **5.2** Hydrate all `[AGENT_POPULATE_SYMBOLS]` slots in `TOKENME.txt` and verify zero drift via `python3 tokenme-sync.py --check`.
-- [ ] **5.3** Enable GitHub Pages deployment and verify Airplane Mode standalone execution on physical Android and iPad tablets.
-- [ ] **5.4** Run `/comms-craft` to generate the bifurcated launch posts:
-  - **Parenting / Community Channels:** Warm utility announcement highlighting `deaninno.com/kids` and the parent game-request form.
-  - **LinkedIn / Engineering Feed:** Systems engineering teardown on Google Play unit economics, zero-telemetry CSP invariants, and `TOKENME` v2.1 agentic compilation velocity.
+- [x] **5.3** Enable GitHub Pages deployment and verify Airplane Mode standalone execution on physical Android and iPad tablets.
 
 ---
 
