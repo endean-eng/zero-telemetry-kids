@@ -1,4 +1,4 @@
-# ADR-001: Launcher Touch-Action Pan-Y Unblocking and 450ms Radial Long-Press Game Activation
+# ADR-002: Launcher Touch-Action Pan-Y Unblocking and 450ms Radial Long-Press Game Activation
 
 * **Status:** Proposed
 * **Date:** 2026-11-18
